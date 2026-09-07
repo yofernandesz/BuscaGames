@@ -1,6 +1,6 @@
 # BuscaGames
 
-![CI](https://github.com/SEU_USUARIO/BuscaGames/actions/workflows/ci.yml/badge.svg)
+![CI](https://github.com/yofernandesz/BuscaGames/actions/workflows/ci.yml/badge.svg)
 
 # React + Vite
 
