@@ -1,3 +1,7 @@
+# BuscaGames
+
+![CI](https://github.com/SEU_USUARIO/BuscaGames/actions/workflows/ci.yml/badge.svg)
+
 # React + Vite
 
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
