@@ -176,7 +176,7 @@ export default function Catalogo({ cookiesAccepted = false, onCookieSettings }) 
             <button type="button" className="search-reset" onClick={() => { setParams({}); setComposition(null); searchInput.current.focus(); }}>Limpar busca</button>
           </div>}
           {loading && !searching && <Skeleton variant="categories" count={6} label="Carregando catálogo..." />}
-          {error && <p role="alert">{error} Tente novamente em instantes.</p>}
+          {error && <p role="alert">{error}{import.meta.env.VITE_GITHUB_PAGES !== 'true' && ' Tente novamente em instantes.'}</p>}
           {data && !searching && <nav className="discovery-nav" aria-label="Explorar categorias">
             {data.sections.map((section) => <CategoryLink key={section.id} section={section} />)}
           </nav>}

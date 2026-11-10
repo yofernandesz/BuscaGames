@@ -3,7 +3,19 @@ import { MemoryRouter, useNavigate } from "react-router-dom";
 import { afterEach, expect, it, vi } from "vitest";
 import ScrollToTop from "./ScrollToTop";
 
-afterEach(() => vi.unstubAllGlobals());
+afterEach(() => { vi.unstubAllGlobals(); vi.unstubAllEnvs(); });
+
+it('no Pages rola para a seção sem substituir o hash usado pela rota', () => {
+  vi.stubEnv('VITE_GITHUB_PAGES', 'true');
+  vi.stubGlobal('scrollTo', vi.fn());
+  render(<MemoryRouter><ScrollToTop /><a href="#dados">Dados</a><section id="dados">Seção</section></MemoryRouter>);
+  const section = document.getElementById('dados');
+  section.scrollIntoView = vi.fn();
+  const click = new MouseEvent('click', { bubbles: true, cancelable: true });
+  screen.getByText('Dados').dispatchEvent(click);
+  expect(click.defaultPrevented).toBe(true);
+  expect(section.scrollIntoView).toHaveBeenCalledWith({ behavior: 'smooth' });
+});
 
 function Navigation() {
   const navigate = useNavigate();
