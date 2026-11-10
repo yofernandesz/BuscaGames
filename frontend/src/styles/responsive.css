@@ -1,0 +1,82 @@
+@media (max-width: 1024px) {
+  :root {
+    font-size: 16px;
+  }
+  .result-count { display: none; }
+}
+
+@media (max-width: 720px) {
+  .search-tools { flex-basis: 100%; }
+  .header-inner { gap: 16px; }
+  .logo-img { width: 44px; height: 44px; }
+  .logo-name { font-size: 1.4rem; }
+  .logo-tagline { font-size: 0.5rem; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    transition: none !important;
+    animation: none !important;
+  }
+}
+
+@media (pointer: coarse) {
+  .star-button,
+  .gallery-thumb {
+    min-width: 44px;
+    min-height: 44px;
+  }
+}
+
+@media (max-width: 520px) {
+  .header-inner {
+    padding: 14px 16px;
+    gap: 12px;
+  }
+  .logo-img {
+    height: 44px;
+  }
+  .result-count {
+    display: none;
+  }
+  main {
+    padding: 24px 16px 60px;
+  }
+
+  .details-media,
+  .details-body {
+    padding: 4px 16px 22px;
+  }
+
+  .details-title {
+    font-size: 1.45rem;
+  }
+}
+
+/* Keep the catalog reachable without crossing six full-height category cards. */
+.catalog-shortcut { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 8px 20px; margin-bottom: 16px; color: var(--text-lo); font-size: .85rem; }
+.catalog-shortcut a { display: inline-flex; align-items: center; gap: 12px; min-height: 44px; color: var(--neon-cyan); font-weight: 600; text-decoration: none; }
+.catalog-shortcut a:hover { text-decoration: underline; text-underline-offset: 4px; }
+.catalog-shortcut a:focus-visible, .btn-details:focus-visible, .btn-ghost:focus-visible, .shelf-criteria summary:focus-visible, .catalog-sync summary:focus-visible { outline: 2px solid var(--neon-cyan); outline-offset: 4px; }
+.catalog-shortcut a:active { opacity: .8; }
+.btn-ghost:disabled { opacity: .55; cursor: wait; }
+.gta-spotlight .discovery-actions { margin: 18px 0 0; }
+@media (max-width: 720px) {
+  .header { position: relative; }
+  .header-inner { gap: 8px 12px; }
+  .main-nav { margin-left: auto; }
+  .catalog-discovery, .catalog-section { scroll-margin-top: 16px; }
+}
+@media (max-width: 480px) {
+  .main-nav { width: 100%; margin-left: 0; }
+  .main-nav a { flex: 1; justify-content: center; }
+  .catalog-shortcut > span { display: none; }
+  .discovery-nav { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .category-card { padding: 14px 10px; }
+  .category-topline { margin-bottom: 12px; }
+  .category-kicker, .category-hint { display: none; }
+  .category-title { font-size: .9rem; overflow-wrap: anywhere; }
+  .category-footer { font-size: .7rem; padding-top: 12px; }
+  .category-arrow { display: none; }
+  .gta-poster { max-height: 220px; }
+}

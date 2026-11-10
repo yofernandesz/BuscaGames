@@ -1,0 +1,465 @@
+{
+  "errors": [],
+  "results": [
+    {
+      "label": "catalogo-320",
+      "viewport": {
+        "width": 320,
+        "height": 900
+      },
+      "overflow": false,
+      "outside": [],
+      "wrappedStars": 0
+    },
+    {
+      "label": "filtros-320",
+      "viewport": {
+        "width": 320,
+        "height": 900
+      },
+      "overflow": false,
+      "outside": [],
+      "wrappedStars": 0
+    },
+    {
+      "label": "busca-320",
+      "viewport": {
+        "width": 320,
+        "height": 900
+      },
+      "overflow": false,
+      "outside": [],
+      "wrappedStars": 0
+    },
+    {
+      "label": "biblioteca-320",
+      "viewport": {
+        "width": 320,
+        "height": 900
+      },
+      "overflow": false,
+      "outside": [],
+      "wrappedStars": 0
+    },
+    {
+      "label": "estatisticas-320",
+      "viewport": {
+        "width": 320,
+        "height": 900
+      },
+      "overflow": false,
+      "outside": [],
+      "wrappedStars": 0
+    },
+    {
+      "label": "comentarios-320",
+      "viewport": {
+        "width": 320,
+        "height": 900
+      },
+      "overflow": false,
+      "outside": [],
+      "wrappedStars": 0
+    },
+    {
+      "label": "detalhes-320",
+      "viewport": {
+        "width": 320,
+        "height": 900
+      },
+      "overflow": false,
+      "outside": [],
+      "wrappedStars": 0
+    },
+    {
+      "label": "perfil-320",
+      "viewport": {
+        "width": 320,
+        "height": 900
+      },
+      "overflow": false,
+      "outside": [],
+      "wrappedStars": 0
+    },
+    {
+      "label": "privacidade-320",
+      "viewport": {
+        "width": 320,
+        "height": 900
+      },
+      "overflow": false,
+      "outside": [],
+      "wrappedStars": 0
+    },
+    {
+      "label": "catalogo-390",
+      "viewport": {
+        "width": 390,
+        "height": 900
+      },
+      "overflow": false,
+      "outside": [],
+      "wrappedStars": 0
+    },
+    {
+      "label": "busca-390",
+      "viewport": {
+        "width": 390,
+        "height": 900
+      },
+      "overflow": false,
+      "outside": [],
+      "wrappedStars": 0
+    },
+    {
+      "label": "biblioteca-390",
+      "viewport": {
+        "width": 390,
+        "height": 900
+      },
+      "overflow": false,
+      "outside": [],
+      "wrappedStars": 0
+    },
+    {
+      "label": "detalhes-390",
+      "viewport": {
+        "width": 390,
+        "height": 900
+      },
+      "overflow": false,
+      "outside": [],
+      "wrappedStars": 0
+    },
+    {
+      "label": "perfil-390",
+      "viewport": {
+        "width": 390,
+        "height": 900
+      },
+      "overflow": false,
+      "outside": [],
+      "wrappedStars": 0
+    },
+    {
+      "label": "privacidade-390",
+      "viewport": {
+        "width": 390,
+        "height": 900
+      },
+      "overflow": false,
+      "outside": [],
+      "wrappedStars": 0
+    },
+    {
+      "label": "catalogo-768",
+      "viewport": {
+        "width": 768,
+        "height": 900
+      },
+      "overflow": false,
+      "outside": [],
+      "wrappedStars": 0
+    },
+    {
+      "label": "busca-768",
+      "viewport": {
+        "width": 768,
+        "height": 900
+      },
+      "overflow": false,
+      "outside": [],
+      "wrappedStars": 0
+    },
+    {
+      "label": "biblioteca-768",
+      "viewport": {
+        "width": 768,
+        "height": 900
+      },
+      "overflow": false,
+      "outside": [],
+      "wrappedStars": 0
+    },
+    {
+      "label": "estatisticas-768",
+      "viewport": {
+        "width": 768,
+        "height": 900
+      },
+      "overflow": false,
+      "outside": [],
+      "wrappedStars": 0
+    },
+    {
+      "label": "comentarios-768",
+      "viewport": {
+        "width": 768,
+        "height": 900
+      },
+      "overflow": false,
+      "outside": [],
+      "wrappedStars": 0
+    },
+    {
+      "label": "detalhes-768",
+      "viewport": {
+        "width": 768,
+        "height": 900
+      },
+      "overflow": false,
+      "outside": [],
+      "wrappedStars": 0
+    },
+    {
+      "label": "perfil-768",
+      "viewport": {
+        "width": 768,
+        "height": 900
+      },
+      "overflow": false,
+      "outside": [],
+      "wrappedStars": 0
+    },
+    {
+      "label": "privacidade-768",
+      "viewport": {
+        "width": 768,
+        "height": 900
+      },
+      "overflow": false,
+      "outside": [],
+      "wrappedStars": 0
+    },
+    {
+      "label": "catalogo-1024",
+      "viewport": {
+        "width": 1024,
+        "height": 900
+      },
+      "overflow": false,
+      "outside": [],
+      "wrappedStars": 0
+    },
+    {
+      "label": "busca-1024",
+      "viewport": {
+        "width": 1024,
+        "height": 900
+      },
+      "overflow": false,
+      "outside": [],
+      "wrappedStars": 0
+    },
+    {
+      "label": "biblioteca-1024",
+      "viewport": {
+        "width": 1024,
+        "height": 900
+      },
+      "overflow": false,
+      "outside": [],
+      "wrappedStars": 0
+    },
+    {
+      "label": "detalhes-1024",
+      "viewport": {
+        "width": 1024,
+        "height": 900
+      },
+      "overflow": false,
+      "outside": [],
+      "wrappedStars": 0
+    },
+    {
+      "label": "perfil-1024",
+      "viewport": {
+        "width": 1024,
+        "height": 900
+      },
+      "overflow": false,
+      "outside": [],
+      "wrappedStars": 0
+    },
+    {
+      "label": "privacidade-1024",
+      "viewport": {
+        "width": 1024,
+        "height": 900
+      },
+      "overflow": false,
+      "outside": [],
+      "wrappedStars": 0
+    },
+    {
+      "label": "catalogo-1440",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "overflow": false,
+      "outside": [],
+      "wrappedStars": 0
+    },
+    {
+      "label": "busca-1440",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "overflow": false,
+      "outside": [],
+      "wrappedStars": 0
+    },
+    {
+      "label": "biblioteca-1440",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "overflow": false,
+      "outside": [],
+      "wrappedStars": 0
+    },
+    {
+      "label": "detalhes-1440",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "overflow": false,
+      "outside": [],
+      "wrappedStars": 0
+    },
+    {
+      "label": "perfil-1440",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "overflow": false,
+      "outside": [],
+      "wrappedStars": 0
+    },
+    {
+      "label": "privacidade-1440",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "overflow": false,
+      "outside": [],
+      "wrappedStars": 0
+    },
+    {
+      "label": "visitante-320",
+      "viewport": {
+        "width": 320,
+        "height": 640
+      },
+      "overflow": false,
+      "outside": [],
+      "wrappedStars": 0
+    },
+    {
+      "label": "login-320",
+      "viewport": {
+        "width": 320,
+        "height": 640
+      },
+      "overflow": false,
+      "outside": [],
+      "wrappedStars": 0
+    },
+    {
+      "label": "cadastro-320",
+      "viewport": {
+        "width": 320,
+        "height": 640
+      },
+      "overflow": false,
+      "outside": [],
+      "wrappedStars": 0
+    },
+    {
+      "label": "visitante-768",
+      "viewport": {
+        "width": 768,
+        "height": 1024
+      },
+      "overflow": false,
+      "outside": [],
+      "wrappedStars": 0
+    },
+    {
+      "label": "login-768",
+      "viewport": {
+        "width": 768,
+        "height": 1024
+      },
+      "overflow": false,
+      "outside": [],
+      "wrappedStars": 0
+    },
+    {
+      "label": "cadastro-768",
+      "viewport": {
+        "width": 768,
+        "height": 1024
+      },
+      "overflow": false,
+      "outside": [],
+      "wrappedStars": 0
+    },
+    {
+      "label": "visitante-812",
+      "viewport": {
+        "width": 812,
+        "height": 375
+      },
+      "overflow": false,
+      "outside": [],
+      "wrappedStars": 0
+    },
+    {
+      "label": "login-812",
+      "viewport": {
+        "width": 812,
+        "height": 375
+      },
+      "overflow": false,
+      "outside": [],
+      "wrappedStars": 0
+    },
+    {
+      "label": "cadastro-812",
+      "viewport": {
+        "width": 812,
+        "height": 375
+      },
+      "overflow": false,
+      "outside": [],
+      "wrappedStars": 0
+    },
+    {
+      "label": "reflow-640",
+      "viewport": {
+        "width": 640,
+        "height": 450
+      },
+      "overflow": false,
+      "outside": [],
+      "wrappedStars": 0
+    },
+    {
+      "label": "reflow-estatisticas-640",
+      "viewport": {
+        "width": 640,
+        "height": 450
+      },
+      "overflow": false,
+      "outside": [],
+      "wrappedStars": 0
+    }
+  ]
+}

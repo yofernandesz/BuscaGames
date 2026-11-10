@@ -1,0 +1,84 @@
+/* Shared social controls. Color and typography inherit the game's existing theme. */
+.social-button {
+  --social-accent: var(--neon-cyan);
+  position: relative;
+  isolation: isolate;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-height: 46px;
+  max-width: 100%;
+  padding: 10px 17px;
+  border: 1px solid color-mix(in srgb, var(--social-accent) 38%, var(--line));
+  border-radius: 12px;
+  background: linear-gradient(145deg, color-mix(in srgb, var(--social-accent) 9%, var(--bg-1)), var(--bg-1));
+  color: var(--text-hi);
+  box-shadow: inset 0 1px 0 color-mix(in srgb, var(--text-hi) 6%, transparent), 0 3px 9px #00000018;
+  font: 600 .8rem/1.35 var(--font-display);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: border-color 180ms ease, background 180ms ease, box-shadow 180ms ease, color 180ms ease, transform 180ms ease;
+}
+.social-button--like { --social-accent: var(--neon-magenta); margin: 10px 0 12px; padding-inline: 13px; }
+.social-button[aria-pressed="true"] {
+  color: var(--social-accent);
+  border-color: color-mix(in srgb, var(--social-accent) 60%, var(--line));
+  background: linear-gradient(145deg, color-mix(in srgb, var(--social-accent) 13%, var(--bg-1)), var(--bg-1));
+}
+.social-button > span { pointer-events: none; }
+.social-button-symbol { position: relative; flex: 0 0 22px; width: 22px; height: 22px; color: var(--social-accent); }
+.social-button-icon { display: block; width: 22px; height: 22px; overflow: visible; transform-origin: center; }
+.social-follow-plus, .social-follow-check { transform-origin: 19px 9px; transition: opacity 180ms ease, transform 250ms ease; }
+.social-follow-check { opacity: 0; transform: scale(.6); }
+.social-button[aria-pressed="true"] .social-follow-plus { opacity: 0; transform: scale(.6) rotate(90deg); }
+.social-button[aria-pressed="true"] .social-follow-check { opacity: 1; transform: scale(1); }
+.social-heart { fill: transparent; transition: fill 220ms ease; }
+.social-button[aria-pressed="true"] .social-heart { fill: currentColor; }
+.social-button-label { display: grid; text-align: center; }
+.social-button-label > span { grid-area: 1 / 1; }
+.social-button-reserve { visibility: hidden; }
+.social-button-count { display: grid; place-items: center; min-width: 2.6ch; padding-left: 10px; border-left: 1px solid color-mix(in srgb, var(--social-accent) 24%, transparent); color: var(--text-hi); font-variant-numeric: tabular-nums; }
+.social-button-count > span { display: inline-block; }
+.social-button-sheen { position: absolute; inset: 0; overflow: hidden; border-radius: inherit; z-index: -1; }
+.social-button-sheen::after { content: ''; position: absolute; inset: -40% -70%; opacity: 0; background: linear-gradient(110deg, transparent 40%, color-mix(in srgb, var(--social-accent) 17%, transparent) 50%, transparent 60%); transform: translateX(-45%); }
+.social-button-halo { position: absolute; inset: -5px; border: 1px solid var(--social-accent); border-radius: 50%; opacity: 0; }
+.social-button-sparks { position: absolute; inset: 0; }
+.social-button-sparks i { position: absolute; left: 50%; top: 50%; width: 3px; height: 3px; margin: -1.5px; border-radius: 50%; background: var(--social-accent); opacity: 0; transform: rotate(var(--spark-angle)) translateY(-9px); }
+.social-button-spinner { position: absolute; inset: 2px; border: 1.5px solid color-mix(in srgb, var(--social-accent) 20%, transparent); border-top-color: var(--social-accent); border-radius: 50%; opacity: 0; }
+.social-button:disabled:not([aria-busy="true"]) { cursor: not-allowed; opacity: .5; }
+.social-button:disabled[aria-busy="true"] { cursor: progress; opacity: .85; }
+.social-button[aria-busy="true"] .social-button-icon { opacity: 0; }
+.social-button[aria-busy="true"] .social-button-spinner { opacity: 1; }
+button.social-button:focus-visible { outline: 2px solid var(--neon-cyan); outline-offset: 4px; }
+.social-button:not(:disabled):active { transform: translateY(1px) scale(.98); box-shadow: inset 0 1px 5px #00000030; }
+@media (hover: hover) {
+  .social-button:not(:disabled):hover { border-color: var(--social-accent); box-shadow: inset 0 1px 0 color-mix(in srgb, var(--text-hi) 12%, transparent), 0 4px 18px color-mix(in srgb, var(--social-accent) 12%, transparent); transform: translateY(-1px); }
+  .social-button:not(:disabled):active:hover { transform: translateY(1px) scale(.98); }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .social-button[aria-busy="true"] .social-button-spinner { animation: social-pending 900ms linear infinite; }
+  .social-button[data-celebrating] .social-button-icon { animation: social-confirm-icon 720ms cubic-bezier(.16, 1, .3, 1); }
+  .social-button[data-celebrating] .social-button-halo { animation: social-confirm-halo 620ms ease-out; }
+  .social-button[data-celebrating] .social-button-sheen::after { animation: social-confirm-sheen 680ms ease-out; }
+  .social-button[data-celebrating] .social-follow-check { stroke-dasharray: 1; animation: social-check-draw 420ms ease-out both; }
+  .social-button[data-celebrating] .social-button-sparks i { animation: social-like-spark 580ms cubic-bezier(.16, 1, .3, 1); }
+  .social-button[data-celebrating] .social-button-count > span { animation: social-count-rise 350ms ease-out; }
+}
+@keyframes social-pending { to { transform: rotate(360deg); } }
+@keyframes social-confirm-icon { 0% { transform: scale(.78); } 32% { transform: scale(1.22); } 58% { transform: scale(.96); } 80% { transform: scale(1.04); } 100% { transform: scale(1); } }
+@keyframes social-confirm-halo { 0% { opacity: 0; transform: scale(.65); } 20% { opacity: .65; } 100% { opacity: 0; transform: scale(1.45); } }
+@keyframes social-confirm-sheen { 0% { opacity: 0; transform: translateX(-45%); } 20% { opacity: 1; } 100% { opacity: 0; transform: translateX(45%); } }
+@keyframes social-check-draw { from { stroke-dashoffset: 1; } to { stroke-dashoffset: 0; } }
+@keyframes social-like-spark { 0% { opacity: 0; transform: rotate(var(--spark-angle)) translateY(-8px) scale(.5); } 25% { opacity: .85; } 100% { opacity: 0; transform: rotate(var(--spark-angle)) translateY(-25px) scale(.3); } }
+@keyframes social-count-rise { from { opacity: .4; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+@media (prefers-reduced-motion: reduce) {
+  .social-button, .social-button *, .social-button *::after { animation: none; transition: none; }
+  .social-button:not(:disabled):hover, .social-button:not(:disabled):active { transform: none; }
+}
+@media (forced-colors: active) {
+  .social-button { border-color: ButtonText; background: ButtonFace; color: ButtonText; box-shadow: none; }
+  .social-button-symbol, .social-button-count { color: ButtonText; }
+  .social-button[aria-pressed="true"] { border-color: Highlight; outline: 1px solid Highlight; }
+  .social-button-sheen, .social-button-halo, .social-button-sparks { display: none; }
+}

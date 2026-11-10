@@ -1,0 +1,20 @@
+✔ logout during request body prevents mutation: /api/auth/nickname (13.8799ms)
+✔ logout during request body prevents mutation: /api/users/2/follow (5.1355ms)
+✔ logout during request body prevents mutation: /api/comments/1/replies (4.8648ms)
+✔ logout during request body prevents mutation: /api/games/igdb-1/favorite (4.8828ms)
+✔ expiry during request body prevents mutation: /api/auth/nickname (4.2162ms)
+✔ expiry during request body prevents mutation: /api/users/2/follow (4.2179ms)
+✔ expiry during request body prevents mutation: /api/comments/1/replies (4.3381ms)
+✔ expiry during request body prevents mutation: /api/games/igdb-1/favorite (4.1678ms)
+✔ block during request body prevents mutation: /api/auth/nickname (4.1547ms)
+✔ block during request body prevents mutation: /api/users/2/follow (4.6698ms)
+✔ block during request body prevents mutation: /api/comments/1/replies (4.1082ms)
+✔ block during request body prevents mutation: /api/games/igdb-1/favorite (4.9675ms)
+ℹ tests 12
+ℹ suites 0
+ℹ pass 12
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 190.3366

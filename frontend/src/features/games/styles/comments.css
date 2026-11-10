@@ -1,0 +1,23 @@
+.comments { margin-block: 1.5rem; min-width: 0; }
+.community-form, .community-form form { display: grid; gap: .75rem; min-width: 0; }
+.community-form label { display: grid; gap: .35rem; }
+.community-form input, .community-form textarea { width: 100%; min-width: 0; box-sizing: border-box; background: var(--bg-0); color: var(--text-hi); border: 1px solid var(--text-lo); border-radius: 7px; padding: .75rem; font: inherit; }
+.community-form textarea { resize: none; min-height: 9rem; }
+.comment-actions, .comment-meta { display: flex; gap: .75rem; flex-wrap: wrap; align-items: center; }
+.comment-meta { color: var(--text-lo); font-size: .95rem; overflow-wrap: anywhere; }
+.comment-meta strong { color: var(--text-hi); }
+.comment-text { white-space: pre-wrap; overflow-wrap: anywhere; }
+.comment-items { list-style: none; padding: 0; margin: 0; }
+.comment-items li, .own-comment { padding-block: 1rem; border-bottom: 1px solid var(--text-lo); }
+.own-comment { border-left: 2px solid var(--neon-cyan); padding-inline: 1rem; margin-block: 1rem; }
+.comment-list button:disabled, .community-form button:disabled { opacity: .6; cursor: not-allowed; }
+.community-form :focus-visible, .comments :focus-visible { outline: 2px solid var(--neon-cyan); outline-offset: 3px; }
+.comment-login { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: .75rem; padding: 1rem; margin-block: 1rem; border: 1px solid var(--line); border-radius: var(--radius); background: var(--bg-1); color: var(--text-lo); }
+.comment-meta .player-photo { width: 2rem; height: 2rem; border-radius: 50%; object-fit: cover; }
+.comment-author { display: inline-flex; align-items: center; gap: 10px; color: inherit; text-decoration: none; min-height: 44px; overflow-wrap: anywhere; }
+.comment-author:hover { color: var(--neon-cyan); text-decoration: underline; }
+.comment-author:focus-visible { outline: 2px solid var(--neon-cyan); outline-offset: 3px; }
+.game-comments-anchor { scroll-margin-top: 120px; }
+.comment-replies { margin-top: .5rem; min-width: 0; }
+.comment-thread { margin-top: .75rem; margin-left: clamp(.5rem, 3vw, 2rem); padding-left: .75rem; border-left: 1px solid var(--text-lo); min-width: 0; }
+.comment-thread .community-form { margin-top: 1rem; }

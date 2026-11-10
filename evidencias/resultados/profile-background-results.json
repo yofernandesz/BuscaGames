@@ -1,0 +1,17 @@
+{
+  "passed": true,
+  "checks": [
+    "upload real com PNG validado",
+    "tipo, tamanho e imagem corrompida",
+    "ocupado e teclado",
+    "persistência após recarga",
+    "falha offline e recuperação",
+    "320/390/650px sem overflow",
+    "visibilidade pública sem sessão",
+    "e-mail privado e edição ausente para visitante",
+    "remoção pública",
+    "sessão expirada",
+    "movimento reduzido"
+  ],
+  "errors": []
+}

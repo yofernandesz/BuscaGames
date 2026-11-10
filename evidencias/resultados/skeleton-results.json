@@ -1,0 +1,96 @@
+{
+  "passed": true,
+  "checks": [
+    {
+      "path": "/",
+      "width": 1440,
+      "variant": "cards"
+    },
+    {
+      "path": "/?q=teste",
+      "width": 1440,
+      "variant": "cards"
+    },
+    {
+      "path": "/jogo/igdb-42",
+      "width": 1440,
+      "variant": "details"
+    },
+    {
+      "path": "/biblioteca",
+      "width": 1440,
+      "variant": "library"
+    },
+    {
+      "path": "/perfil",
+      "width": 1440,
+      "variant": "profile"
+    },
+    {
+      "path": "/perfil/1",
+      "width": 1440,
+      "variant": "profile"
+    },
+    {
+      "path": "/comunidade",
+      "width": 1440,
+      "variant": "players"
+    },
+    {
+      "path": "/admin",
+      "width": 1440,
+      "variant": "dashboard"
+    },
+    {
+      "path": "/admin/usuarios",
+      "width": 1440,
+      "variant": "table"
+    },
+    {
+      "path": "/",
+      "width": 320,
+      "variant": "cards"
+    },
+    {
+      "path": "/?q=teste",
+      "width": 320,
+      "variant": "cards"
+    },
+    {
+      "path": "/jogo/igdb-42",
+      "width": 320,
+      "variant": "details"
+    },
+    {
+      "path": "/biblioteca",
+      "width": 320,
+      "variant": "library"
+    },
+    {
+      "path": "/perfil",
+      "width": 320,
+      "variant": "profile"
+    },
+    {
+      "path": "/perfil/1",
+      "width": 320,
+      "variant": "profile"
+    },
+    {
+      "path": "/comunidade",
+      "width": 320,
+      "variant": "players"
+    },
+    {
+      "path": "/admin",
+      "width": 320,
+      "variant": "dashboard"
+    },
+    {
+      "path": "/admin/usuarios",
+      "width": 320,
+      "variant": "table"
+    }
+  ],
+  "errors": []
+}

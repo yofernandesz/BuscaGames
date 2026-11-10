@@ -1,0 +1,55 @@
+const assert = require('node:assert/strict');
+const { createHash } = require('node:crypto');
+const { chromium } = require(process.env.PLAYWRIGHT_MODULE || 'playwright');
+
+(async () => {
+  const { openCatalog, upsertGames } = await import('../../backend/src/catalog/catalog.js');
+  const { createApp } = await import('../../backend/src/server.js');
+  const { createServer } = await import('../../frontend/node_modules/vite/dist/node/index.js');
+  const db = openCatalog(':memory:');
+  upsertGames(db, [{ id: 1, name: 'Hollow Knight' }]);
+  db.prepare("INSERT INTO users(id,name,email,password_hash,salt) VALUES (1,'Ana','ana@example.com','unused','unused'),(2,'Bruno','bruno@example.com','unused','unused')").run();
+  db.prepare("INSERT INTO comments(user_id,game_id,body,created_at) VALUES (2,1,'Excelente jogo','2026-11-07T12:00:00Z')").run();
+  const token = 'd'.repeat(64);
+  db.prepare('INSERT INTO sessions VALUES (?,?,?)').run(createHash('sha256').update(token).digest('hex'), 1, Date.now() + 600000);
+  const api = createApp(db);
+  await new Promise(resolve => api.listen(0, '127.0.0.1', resolve));
+  const server = await createServer({ root: 'frontend', server: { host: '127.0.0.1', port: 0, proxy: { '/api': `http://127.0.0.1:${api.address().port}` } } });
+  await server.listen();
+  const origin = `http://127.0.0.1:${server.httpServer.address().port}`;
+  const browser = await chromium.launch({ channel: 'msedge', headless: true });
+  try {
+    const context = await browser.newContext({ viewport: { width: 1280, height: 900 } });
+    await context.addCookies([{ name: 'bg_session', value: token, url: origin }]);
+    await context.addInitScript(() => localStorage.setItem('buscagames:cookie-choice', 'rejected'));
+    const page = await context.newPage();
+    await page.goto(`${origin}/jogo/igdb-1`);
+    const toggle = page.getByRole('button', { name: 'Responder / ver respostas' });
+    await toggle.focus(); await page.keyboard.press('Enter');
+    await page.getByText('Ainda não há respostas.').waitFor();
+    const input = page.getByLabel('Responder a Bruno');
+    await input.fill('a'.repeat(36));
+    assert(await page.getByRole('button', { name: 'Publicar resposta' }).isDisabled());
+    await input.fill('Concordo!');
+    await page.route('**/api/comments/1/replies', route => route.fulfill({ status: 503, contentType: 'application/json', body: JSON.stringify({ error: 'Falha temporária.' }) }), { times: 1 });
+    await page.getByRole('button', { name: 'Publicar resposta' }).click();
+    await page.getByText('Falha temporária.').waitFor();
+    assert.equal(await input.inputValue(), 'Concordo!');
+    await page.getByRole('button', { name: 'Publicar resposta' }).click();
+    await page.getByText('Resposta publicada.').waitFor();
+    await page.locator('.comment-thread').screenshot({ path: 'evidencias/capturas/replies-desktop.png' });
+    await page.setViewportSize({ width: 320, height: 800 });
+    await input.fill('😀'.repeat(35));
+    await page.getByRole('button', { name: 'Publicar resposta' }).click();
+    await page.getByText('Você já enviou duas respostas a este comentário.').waitFor();
+    assert(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
+    await page.locator('.comment-thread').screenshot({ path: 'evidencias/capturas/replies-mobile.png' });
+    await page.reload();
+    await toggle.click();
+    await page.getByText('Você já enviou duas respostas a este comentário.').waitFor();
+    await context.clearCookies();
+    await page.reload(); await toggle.click();
+    await page.getByRole('button', { name: 'Entrar para responder' }).waitFor();
+    console.log('Respostas: teclado, limite, falha, duas publicações, persistência, visitante e mobile OK.');
+  } finally { await browser.close(); await server.close(); await new Promise(resolve => api.close(resolve)); db.close(); }
+})().catch(error => { console.error(error); process.exitCode = 1; });

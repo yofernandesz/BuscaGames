@@ -1,0 +1,87 @@
+✔ registration policy: length, confirmation, common patterns, personal data and Unicode (7.7328ms)
+✔ API rejects bypasses and oversized requests; hashes secrets and rotates/revokes sessions (1522.3871ms)
+✔ existing accounts outside the new length range can log in without profile changes (735.1689ms)
+✔ legacy passwords remain valid and upgrade only after authentication; Secure cookies and expiration (463.4528ms)
+✔ IP/account throttling survives restarts, expires and ignores spoofed forwarding headers (2691.1535ms)
+✔ concurrent duplicate registrations create exactly one account (222.8345ms)
+✔ nickname uniqueness rejects equivalent names and concurrent requests with different emails (1123.5218ms)
+✔ administration requires independent authorized login, rechecks roles and persists actions (2581.7508ms)
+✔ auth: favorites ownership, Google PKCE/state, replay, linking and callback recovery (2002.6682ms)
+✔ existing OAuth tables gain the redirect column without losing accounts or sessions (7.1191ms)
+Interesse semanal preservado: IGDB: interesse semanal ausente ou desatualizado
+Ranking Steam preservado: Steam via IGDB: ranking ausente ou inválido
+Interesse semanal preservado: IGDB: interesse semanal ausente ou desatualizado
+Ranking Steam preservado: Steam via IGDB: ranking ausente ou inválido
+Catálogo sincronizado: 2026-10-23
+Interesse semanal preservado: IGDB: interesse semanal ausente ou desatualizado
+Ranking Steam preservado: Steam via IGDB: ranking ausente ou inválido
+Catálogo sincronizado: 2026-10-23
+Interesse semanal preservado: IGDB: interesse semanal ausente ou desatualizado
+Ranking Steam preservado: Steam via IGDB: ranking ausente ou inválido
+Interesse semanal preservado: IGDB: interesse semanal ausente ou desatualizado
+Ranking Steam preservado: Steam via IGDB: ranking ausente ou inválido
+Catálogo sincronizado: 2026-10-23
+Catálogo sincronizado: 2026-10-23
+Catálogo sincronizado: 2026-10-23
+✔ genres and themes appear in lists and details and are searchable in Portuguese (135.2534ms)
+✔ theme backfill refreshes old unchanged games and resumes after failure (19.676ms)
+✔ persistent upsert, optional data, accent search, literal wildcards and atomic rollback (86.4193ms)
+✔ shelves use dates, rating thresholds and measured growth; missing baseline never becomes zero (16.5027ms)
+✔ incremental cursor resumes after failure; watermark advances only at end; locks prevent overlap (15.5325ms)
+✔ daily sampling uses provider dates, rejects stale measurements and does not duplicate reruns (16.296ms)
+✔ scheduler catches up after downtime and respects daily UTC boundary (6.8906ms)
+✔ HTTP reads only stored data, validates pagination and supports ETags and direct details (132.3514ms)
+✔ IGDB honors Retry-After, renews OAuth after 401 and never leaks provider response bodies (7.5912ms)
+✔ Steam snapshot is atomic and preserves the prior ranking on missing or stale data (10.0052ms)
+✔ localized Steam description and PC requirements are stored safely without changing names (727.8802ms)
+Localização igdb-730: Steam: falha de rede
+Localização igdb-1: Cota diária de tradução atingida
+✔ localization backs off failures, retains requirements and resumes queued jobs (1440.4793ms)
+✔ exhausted quota has an explicit status and retries at the next UTC day (4.5819ms)
+✔ weekly fallback is paginated, searchable, honest and replaced by fresh measurements (7.2303ms)
+✔ weekly collection commits before a later catalog failure (4.0211ms)
+✔ hack and slash spelling variants share the Portuguese genre and search (4.0904ms)
+✔ comments: authentication, ownership, validation, ratings, pagination, counts and restart persistence (1975.7521ms)
+✔ upgrades existing queues without losing jobs and preserves priority after reopening (103.2437ms)
+✔ visits are FIFO ahead of background work, including visits arriving during a batch (3607.261ms)
+✔ detail views promote pending translations on cache hits without resetting quota or requeuing ready text (78.4054ms)
+✔ nickname API authenticates, ignores supplied roles and IDs, and publishes saved names (243.223ms)
+✔ database rejects duplicate nicknames on insert/update, including another connection and reopen (79.1659ms)
+✔ legacy migration resolves duplicates and suffix collisions without losing accounts or relationships (93.4884ms)
+✔ nickname changes enforce availability and exactly 30 days, with administrator exceptions (9.2234ms)
+✔ batched list metadata matches individual reads with a fixed number of SELECTs (54.3292ms)
+✔ catalog ordering uses indexes without temporary sorting and keeps tie order (8.5326ms)
+✔ Steam coalesces concurrent requests, separates languages and releases failed requests (1487.3644ms)
+✔ Steam URL variants use exact IDs and unlinked editions have an explicit status (11.2349ms)
+Preço igdb-1: Steam: resposta inválida
+✔ bad product data does not block other prices and old prices never cross app IDs (746.711ms)
+✔ localization shares Steam cooldown and unavailable prices are reused for a day (365.4406ms)
+✔ prices use exact app IDs and BRL cents, distinguish free games, zero offers and missing prices (5.9653ms)
+Preço igdb-1: Steam: HTTP 429
+✔ price queue is independent of translation quota, prioritizes visits and stops on provider throttling (1080.2131ms)
+Preço igdb-1: Steam: resposta inválida
+✔ missing Steam products never become free, malformed responses retain the last known price (718.9885ms)
+✔ stored prices appear in listings and details and invalidate cached HTTP responses (80.5153ms)
+✔ background PNG validation rejects corrupt, oversized and malformed images (30.7514ms)
+✔ background is public, account-owned, persists on reload and can be replaced or removed (370.6422ms)
+✔ logout during request body prevents mutation: /api/auth/nickname (32.0205ms)
+✔ logout during request body prevents mutation: /api/users/2/follow (10.7848ms)
+✔ logout during request body prevents mutation: /api/comments/1/replies (11.5005ms)
+✔ logout during request body prevents mutation: /api/games/igdb-1/favorite (9.6022ms)
+✔ expiry during request body prevents mutation: /api/auth/nickname (9.0418ms)
+✔ expiry during request body prevents mutation: /api/users/2/follow (9.9174ms)
+✔ expiry during request body prevents mutation: /api/comments/1/replies (7.5918ms)
+✔ expiry during request body prevents mutation: /api/games/igdb-1/favorite (7.8706ms)
+✔ block during request body prevents mutation: /api/auth/nickname (7.199ms)
+✔ block during request body prevents mutation: /api/users/2/follow (9.2425ms)
+✔ block during request body prevents mutation: /api/comments/1/replies (7.3892ms)
+✔ block during request body prevents mutation: /api/games/igdb-1/favorite (13.2859ms)
+✔ public profiles, follows and likes: privacy, ownership, pagination, validation and persistence (772.8036ms)
+ℹ tests 59
+ℹ suites 0
+ℹ pass 59
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 7055.4914

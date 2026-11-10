@@ -1,0 +1,46 @@
+name: buscagames
+
+services:
+  app:
+    # Reutiliza a imagem local criada na atividade anterior.
+    image: buscagames:1.0
+    pull_policy: never
+    # Permite reconstruir a mesma imagem em um Codespace novo ou no CI.
+    build: .
+    ports:
+      - "8080:8080"
+    # Reinicia se o processo terminar, mas respeita uma parada manual.
+    restart: unless-stopped
+    depends_on:
+      api:
+        condition: service_healthy
+    # O healthcheck e o usuário sem root são herdados do Dockerfile.
+    networks:
+      - app
+
+  api:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    environment:
+      IGDB_CLIENT_ID: ${IGDB_CLIENT_ID:-}
+      IGDB_CLIENT_SECRET: ${IGDB_CLIENT_SECRET:-}
+      SYNC_HOUR_UTC: ${SYNC_HOUR_UTC:-6}
+      SESSION_COOKIE_SECURE: ${SESSION_COOKIE_SECURE:-false}
+      TRUST_PROXY: "true"
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
+      GOOGLE_REDIRECT_URI: ${GOOGLE_REDIRECT_URI:-http://localhost:8080/api/auth/google/callback}
+      GOOGLE_REDIRECT_URIS: ${GOOGLE_REDIRECT_URIS:-}
+    volumes:
+      - catalog-data:/app/data
+    restart: unless-stopped
+    networks:
+      - app
+
+volumes:
+  catalog-data:
+
+networks:
+  app:
+    driver: bridge

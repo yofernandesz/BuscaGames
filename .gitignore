@@ -11,10 +11,15 @@ node_modules/
 dist/
 .env
 .env.local
+.env.*
+!.env.example
+backend/data/
+*.sqlite
+*.sqlite-shm
+*.sqlite-wal
 
-node_modules
-dist
-dist-ssr
+dist-ssr/
+coverage/
 *.local
 
 # Editor directories and files

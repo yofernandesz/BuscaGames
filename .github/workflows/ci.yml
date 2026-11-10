@@ -9,22 +9,26 @@ on:
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      COMPOSE_PROJECT_NAME: buscagames-ci
 
     steps:
       - name: Baixar código
         uses: actions/checkout@v4
 
-      - name: Configurar Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 24
-          cache: npm
+      - name: Validar Compose
+        run: docker compose -f compose.yaml -f compose.ci.yaml config --quiet
 
-      - name: Instalar dependências
-        run: npm ci
+      - name: Construir imagem, verificar código e executar testes
+        run: >-
+          docker compose -f compose.yaml -f compose.ci.yaml
+          up --build --abort-on-container-exit --exit-code-from tests
 
-      - name: Executar testes
-        run: npm test
+      - name: Exibir logs em caso de falha
+        if: failure()
+        run: docker compose -f compose.yaml -f compose.ci.yaml logs --no-color
 
-      - name: Fazer build
-        run: npm run build
+      - name: Remover containers, rede e volumes de teste
+        if: always()
+        run: docker compose -f compose.yaml -f compose.ci.yaml down --volumes --remove-orphans

@@ -1,0 +1,21 @@
+{
+  "movedFiles": 117,
+  "codeFilesWithOnlyPathChanges": 79,
+  "unchangedStylesheets": 16,
+  "imageFilesPresent": 36,
+  "validRelativeImports": 213,
+  "identicalProductionBundles": true,
+  "tests": {
+    "frontend": 65,
+    "backend": 42,
+    "browserScripts": 8,
+    "responsiveScenarios": 46
+  },
+  "validation": {
+    "lint": "passed",
+    "build": "passed",
+    "markdownLinks": "passed",
+    "containerImportPaths": 24,
+    "dockerBuild": "not run: Docker unavailable"
+  }
+}

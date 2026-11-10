@@ -1,0 +1,34 @@
+.photo-crop-dialog { width: min(38rem, calc(100vw - 2rem)); max-height: calc(100dvh - 2rem); margin: auto; padding: 0; overflow: auto; color: var(--text-hi); background: var(--bg-1); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: 0 24px 80px #0009; }
+.photo-crop-dialog::backdrop { background: #05040bcc; }
+.photo-crop-header, .photo-crop-footer { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: 1.2rem 1.5rem; }
+.photo-crop-header { border-bottom: 1px solid var(--line); }
+.photo-crop-header h2 { margin: .4rem 0 0; font: 600 clamp(1.1rem, 4vw, 1.5rem)/1.3 var(--font-display); }
+.photo-crop-header .profile-eyebrow { margin: 0; font-size: .65rem; }
+.photo-crop-close { flex-shrink: 0; font-size: 1.5rem; }
+.photo-crop-body { padding: 1.2rem 1.5rem 0; }
+.photo-crop-body > p { color: var(--text-lo); margin: 0 0 1rem; line-height: 1.5; }
+.photo-crop-stage { display: grid; justify-items: center; gap: 1rem; padding: 1.25rem; border: 1px solid var(--line); border-radius: 10px; background: var(--bg-0); }
+.photo-crop-frame { position: relative; width: min(100%, 17rem); overflow: hidden; touch-action: none; cursor: grab; outline: 1px solid var(--neon-cyan); background: var(--bg-2); }
+.photo-crop-frame:active { cursor: grabbing; }
+.photo-crop-wide { width: 100%; }
+.photo-crop-frame img { position: absolute; max-width: none; user-select: none; pointer-events: none; }
+.photo-crop-grid { position: absolute; inset: 0; pointer-events: none; background: linear-gradient(to right, transparent 33.1%, #fff5 33.1%, #fff5 33.4%, transparent 33.4%, transparent 66.4%, #fff5 66.4%, #fff5 66.7%, transparent 66.7%), linear-gradient(to bottom, transparent 33.1%, #fff5 33.1%, #fff5 33.4%, transparent 33.4%, transparent 66.4%, #fff5 66.4%, #fff5 66.7%, transparent 66.7%); }
+.photo-crop-caption { color: var(--text-lo); font: 500 .75rem var(--font-display); }
+.photo-crop-controls { min-width: 0; padding: 1.1rem 0; border: 0; margin: 0; }
+.photo-crop-controls label { display: flex; justify-content: space-between; font-weight: 600; }
+.photo-crop-controls output { color: var(--neon-cyan); font-variant-numeric: tabular-nums; }
+.photo-crop-controls input { display: block; width: 100%; height: 44px; margin: 0; accent-color: var(--neon-cyan); cursor: pointer; }
+.photo-crop-position { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-top: .3rem; }
+.photo-crop-footer { position: sticky; bottom: 0; background: var(--bg-1); border-top: 1px solid var(--line); }
+.photo-crop-footer .btn-details { min-width: 10rem; }
+.photo-crop-dialog button { min-height: 44px; cursor: pointer; }
+.photo-crop-dialog button:disabled, .photo-crop-dialog input:disabled { opacity: .5; cursor: not-allowed; }
+.photo-crop-dialog :focus-visible { outline: 2px solid var(--neon-cyan); outline-offset: 3px; }
+.photo-crop-status { min-height: 3em; }
+@media (max-width: 480px) {
+  .photo-crop-header, .photo-crop-footer { padding: 1rem; gap: .5rem; }
+  .photo-crop-body { padding: 1rem 1rem 0; }
+  .photo-crop-stage { padding: .75rem; }
+  .photo-crop-frame:not(.photo-crop-wide) { max-width: 12rem; }
+  .photo-crop-footer .btn-details { min-width: 0; }
+}

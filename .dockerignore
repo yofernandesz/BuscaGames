@@ -1,0 +1,35 @@
+# Enviar apenas os arquivos necessários ao build.
+**
+!Dockerfile
+!nginx.conf
+!frontend/
+!frontend/package.json
+!frontend/package-lock.json
+!frontend/index.html
+!frontend/vite.config.js
+!frontend/eslint.config.js
+!frontend/src/
+!frontend/src/**
+!frontend/public/
+!frontend/public/**
+!backend/
+!backend/Dockerfile
+!backend/package.json
+!backend/src/
+!backend/src/**
+!backend/test/
+!backend/test/**
+!shared/
+!shared/**
+
+# Testes entram apenas na etapa build, reutilizada pelo Compose de CI.
+# A imagem final continua recebendo somente dist/.
+# Excluir segredos mesmo quando estiverem nas pastas permitidas.
+**/node_modules
+**/dist
+**/.git
+**/.env*
+**/*.local
+**/*.pem
+**/*.key
+**/coverage/

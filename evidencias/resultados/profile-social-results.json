@@ -1,0 +1,83 @@
+{
+  "browser": "Edge headless",
+  "api": "real, SQLite em memória",
+  "checks": [
+    "links",
+    "keyboard",
+    "back",
+    "unfollow counts",
+    "likes",
+    "comments",
+    "private fields",
+    "failure/retry",
+    "loading",
+    "offline/retry",
+    "empty",
+    "reduced motion",
+    "visitor",
+    "sibling community"
+  ],
+  "widths": [
+    {
+      "width": 320,
+      "path": "/perfil",
+      "overflow": false
+    },
+    {
+      "width": 320,
+      "path": "/perfil/1?aba=likes",
+      "overflow": false
+    },
+    {
+      "width": 320,
+      "path": "/perfil/3?aba=followers",
+      "overflow": false
+    },
+    {
+      "width": 390,
+      "path": "/perfil",
+      "overflow": false
+    },
+    {
+      "width": 390,
+      "path": "/perfil/1?aba=likes",
+      "overflow": false
+    },
+    {
+      "width": 390,
+      "path": "/perfil/3?aba=followers",
+      "overflow": false
+    },
+    {
+      "width": 768,
+      "path": "/perfil",
+      "overflow": false
+    },
+    {
+      "width": 768,
+      "path": "/perfil/1?aba=likes",
+      "overflow": false
+    },
+    {
+      "width": 768,
+      "path": "/perfil/3?aba=followers",
+      "overflow": false
+    },
+    {
+      "width": 1440,
+      "path": "/perfil",
+      "overflow": false
+    },
+    {
+      "width": 1440,
+      "path": "/perfil/1?aba=likes",
+      "overflow": false
+    },
+    {
+      "width": 1440,
+      "path": "/perfil/3?aba=followers",
+      "overflow": false
+    }
+  ],
+  "errors": []
+}

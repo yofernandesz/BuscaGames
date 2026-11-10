@@ -1,0 +1,238 @@
+✖ logout during request body prevents mutation: /api/auth/nickname (17.8599ms)
+✖ logout during request body prevents mutation: /api/users/2/follow (5.6918ms)
+✖ logout during request body prevents mutation: /api/comments/1/replies (5.2778ms)
+✖ logout during request body prevents mutation: /api/games/igdb-1/favorite (4.8281ms)
+✖ expiry during request body prevents mutation: /api/auth/nickname (5.3304ms)
+✖ expiry during request body prevents mutation: /api/users/2/follow (5.6416ms)
+✖ expiry during request body prevents mutation: /api/comments/1/replies (6.0074ms)
+✖ expiry during request body prevents mutation: /api/games/igdb-1/favorite (4.8406ms)
+✖ block during request body prevents mutation: /api/auth/nickname (4.4183ms)
+✖ block during request body prevents mutation: /api/users/2/follow (5.3027ms)
+✖ block during request body prevents mutation: /api/comments/1/replies (4.2804ms)
+✖ block during request body prevents mutation: /api/games/igdb-1/favorite (4.3964ms)
+ℹ tests 12
+ℹ suites 0
+ℹ pass 0
+ℹ fail 12
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 209.3707
+
+✖ failing tests:
+
+test at backend\test\session-revocation.test.js:15:5
+✖ logout during request body prevents mutation: /api/auth/nickname (17.8599ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  200 !== 401
+  
+      at TestContext.<anonymous> (file:///C:/Users/thur2/OneDrive/%C3%81rea%20de%20Trabalho/BuscaGames/BuscaGames/backend/test/session-revocation.test.js:34:16)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 200,
+    expected: 401,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at backend\test\session-revocation.test.js:15:5
+✖ logout during request body prevents mutation: /api/users/2/follow (5.6918ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  200 !== 401
+  
+      at TestContext.<anonymous> (file:///C:/Users/thur2/OneDrive/%C3%81rea%20de%20Trabalho/BuscaGames/BuscaGames/backend/test/session-revocation.test.js:34:16)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 200,
+    expected: 401,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at backend\test\session-revocation.test.js:15:5
+✖ logout during request body prevents mutation: /api/comments/1/replies (5.2778ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  201 !== 401
+  
+      at TestContext.<anonymous> (file:///C:/Users/thur2/OneDrive/%C3%81rea%20de%20Trabalho/BuscaGames/BuscaGames/backend/test/session-revocation.test.js:34:16)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 201,
+    expected: 401,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at backend\test\session-revocation.test.js:15:5
+✖ logout during request body prevents mutation: /api/games/igdb-1/favorite (4.8281ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  200 !== 401
+  
+      at TestContext.<anonymous> (file:///C:/Users/thur2/OneDrive/%C3%81rea%20de%20Trabalho/BuscaGames/BuscaGames/backend/test/session-revocation.test.js:34:16)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 200,
+    expected: 401,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at backend\test\session-revocation.test.js:15:5
+✖ expiry during request body prevents mutation: /api/auth/nickname (5.3304ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  200 !== 401
+  
+      at TestContext.<anonymous> (file:///C:/Users/thur2/OneDrive/%C3%81rea%20de%20Trabalho/BuscaGames/BuscaGames/backend/test/session-revocation.test.js:34:16)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 200,
+    expected: 401,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at backend\test\session-revocation.test.js:15:5
+✖ expiry during request body prevents mutation: /api/users/2/follow (5.6416ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  200 !== 401
+  
+      at TestContext.<anonymous> (file:///C:/Users/thur2/OneDrive/%C3%81rea%20de%20Trabalho/BuscaGames/BuscaGames/backend/test/session-revocation.test.js:34:16)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 200,
+    expected: 401,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at backend\test\session-revocation.test.js:15:5
+✖ expiry during request body prevents mutation: /api/comments/1/replies (6.0074ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  201 !== 401
+  
+      at TestContext.<anonymous> (file:///C:/Users/thur2/OneDrive/%C3%81rea%20de%20Trabalho/BuscaGames/BuscaGames/backend/test/session-revocation.test.js:34:16)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 201,
+    expected: 401,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at backend\test\session-revocation.test.js:15:5
+✖ expiry during request body prevents mutation: /api/games/igdb-1/favorite (4.8406ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  200 !== 401
+  
+      at TestContext.<anonymous> (file:///C:/Users/thur2/OneDrive/%C3%81rea%20de%20Trabalho/BuscaGames/BuscaGames/backend/test/session-revocation.test.js:34:16)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 200,
+    expected: 401,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at backend\test\session-revocation.test.js:15:5
+✖ block during request body prevents mutation: /api/auth/nickname (4.4183ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  403 !== 401
+  
+      at TestContext.<anonymous> (file:///C:/Users/thur2/OneDrive/%C3%81rea%20de%20Trabalho/BuscaGames/BuscaGames/backend/test/session-revocation.test.js:34:16)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 403,
+    expected: 401,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at backend\test\session-revocation.test.js:15:5
+✖ block during request body prevents mutation: /api/users/2/follow (5.3027ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  403 !== 401
+  
+      at TestContext.<anonymous> (file:///C:/Users/thur2/OneDrive/%C3%81rea%20de%20Trabalho/BuscaGames/BuscaGames/backend/test/session-revocation.test.js:34:16)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 403,
+    expected: 401,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at backend\test\session-revocation.test.js:15:5
+✖ block during request body prevents mutation: /api/comments/1/replies (4.2804ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  201 !== 401
+  
+      at TestContext.<anonymous> (file:///C:/Users/thur2/OneDrive/%C3%81rea%20de%20Trabalho/BuscaGames/BuscaGames/backend/test/session-revocation.test.js:34:16)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 201,
+    expected: 401,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at backend\test\session-revocation.test.js:15:5
+✖ block during request body prevents mutation: /api/games/igdb-1/favorite (4.3964ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  403 !== 401
+  
+      at TestContext.<anonymous> (file:///C:/Users/thur2/OneDrive/%C3%81rea%20de%20Trabalho/BuscaGames/BuscaGames/backend/test/session-revocation.test.js:34:16)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 403,
+    expected: 401,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

@@ -1,0 +1,125 @@
+@import url("https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=Rajdhani:wght@400;500;600;700&display=swap");
+
+:root {
+  font: 18px/145% system-ui, 'Segoe UI', Roboto, sans-serif;
+  letter-spacing: 0.18px;
+  color-scheme: light dark;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+#root {
+  min-height: 100dvh;
+}
+
+h1,
+h2 {
+  font-family: inherit;
+  font-weight: inherit;
+  color: inherit;
+  font-size: inherit;
+  letter-spacing: inherit;
+  margin: 0;
+  line-height: inherit;
+}
+
+p {
+  margin: 0;
+}
+
+
+:root {
+  --bg-0: #0b0a12;
+  --bg-1: #121026;
+  --bg-2: #191633;
+  --line: rgba(151, 140, 255, 0.18);
+  --text-hi: #f1eeff;
+  --text-lo: #a29ccb;
+  --neon-purple: #9b5cff;
+  --neon-cyan: #34f0e0;
+  --neon-magenta: #ff4dc4;
+  --price-free: #34f0e0;
+  --radius: 14px;
+  --z-cookie-notice: 60;
+  --font-display: "Chakra Petch", sans-serif;
+  --font-body: "Rajdhani", sans-serif;
+  --page-max: 75rem;
+  --space: clamp(0.75rem, 2.5vw, 1.5rem);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  overflow-x: clip;
+  scrollbar-gutter: stable;
+  scrollbar-color: var(--text-lo) var(--bg-0);
+  scrollbar-width: auto;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  html { scroll-behavior: smooth; }
+}
+
+*::-webkit-scrollbar { width: 12px; height: 12px; }
+*::-webkit-scrollbar-track { background: var(--bg-0); }
+*::-webkit-scrollbar-thumb { background: var(--text-lo); border: 3px solid var(--bg-0); border-radius: 8px; }
+*::-webkit-scrollbar-thumb:hover { background: var(--text-hi); }
+*::-webkit-scrollbar-thumb:active { background: var(--neon-cyan); }
+@media (forced-colors: active) { html { scrollbar-color: auto; } }
+
+body {
+  margin: 0;
+  padding: 0;
+  color: var(--text-hi);
+  font-family: var(--font-body);
+  background:
+    radial-gradient(ellipse 70vw 40vh at 15% -10%, rgba(155, 92, 255, 0.2), transparent 60%),
+    radial-gradient(ellipse 55vw 40vh at 100% 0%, rgba(52, 240, 224, 0.1), transparent 55%),
+    var(--bg-0);
+  background-attachment: fixed;
+  min-height: 100dvh;
+  overflow-x: clip;
+}
+
+img,
+svg,
+video {
+  max-width: 100%;
+}
+
+.app {
+  min-height: 100dvh;
+  min-height: 100svh;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+
+.app::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background: repeating-linear-gradient(
+    to bottom,
+    rgba(255, 255, 255, 0.018) 0px,
+    rgba(255, 255, 255, 0.018) 1px,
+    transparent 1px,
+    transparent 3px
+  );
+  z-index: 1000;
+  mix-blend-mode: overlay;
+}
+
+::selection {
+  background: var(--neon-purple);
+  color: #fff;
+}
+
+.review-badge { width: 1em; height: 1em; max-width: 1.25rem; margin-inline-start: .3em; vertical-align: -.12em; color: var(--neon-cyan); }
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; border: 0; }

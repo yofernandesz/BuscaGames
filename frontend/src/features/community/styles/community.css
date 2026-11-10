@@ -1,0 +1,67 @@
+.community-page { width: min(var(--page-max), 100%); margin: 0 auto; padding: 36px var(--space) 72px; }
+.community-page h1 { font-family: var(--font-display); font-size: clamp(1.8rem, 4vw, 2.8rem); line-height: 1.2; overflow-wrap: anywhere; outline: none; }
+.community-heading h1 { margin: 8px 0 12px; }
+.community-heading h1 span { color: var(--neon-cyan); }
+.community-heading p, .community-note, .community-player > p, .community-player-link span, .community-profile p { color: var(--text-lo); }
+.community-heading { margin-bottom: 28px; }
+.community-page a { color: inherit; }
+.community-page a:focus-visible, .community-page input:focus-visible { outline: 2px solid var(--neon-cyan); outline-offset: 4px; }
+.community-back { display: inline-flex; align-items: center; min-height: 44px; margin-bottom: 16px; }
+.community-search { max-width: 40rem; margin: 0 0 28px; }
+.community-search label { display: block; margin-bottom: 8px; }
+.community-search > div { display: flex; flex-wrap: wrap; gap: 8px; }
+.community-search input { flex: 1 1 12rem; min-width: 0; padding: 12px; border: 1px solid var(--line); border-radius: 8px; background: var(--bg-1); color: var(--text-hi); font: inherit; }
+.community-search input::-webkit-search-cancel-button { display: none; }
+.community-search:has(input:placeholder-shown) .community-search-clear { display: none; }
+.community-players { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr)); gap: 18px; }
+.community-player { min-width: 0; border: 1px solid var(--line); border-radius: var(--radius); background: var(--bg-1); padding: 22px; }
+.community-player-link { display: flex; gap: 14px; align-items: center; text-decoration: none; }
+.community-player-link:hover h2 { color: var(--neon-cyan); }
+.community-player-link > div { min-width: 0; }
+.community-player h2 { font: 600 1.25rem var(--font-display); overflow-wrap: anywhere; margin: 0 0 6px; }
+.community-avatar { display: grid; place-items: center; flex: 0 0 54px; width: 54px; height: 54px; border: 1px solid var(--line); border-radius: 50%; background: var(--bg-2); color: var(--neon-cyan); font-size: 1.8rem; overflow: hidden; }
+.community-avatar .player-photo { width: 100%; height: 100%; object-fit: cover; border-radius: inherit; }
+.community-profile { display: flex; flex-wrap: wrap; gap: 24px; align-items: center; padding: clamp(20px, 4vw, 40px); border: 1px solid var(--line); border-radius: var(--radius); background: var(--bg-1); }
+.community-profile > div:nth-child(2) { flex: 1 1 230px; min-width: 0; }
+.community-profile .community-avatar { width: 88px; height: 88px; flex-basis: 88px; }
+.community-profile h1 { margin: 6px 0; }
+.community-stats { flex: 1 0 100%; display: flex; flex-wrap: wrap; gap: 20px 48px; padding-top: 24px; margin: 0; border-top: 1px dashed var(--line); }
+.community-stats dt { color: var(--text-lo); }
+.community-stats dd { font: 600 1.6rem var(--font-display); margin: 8px 0 0; }
+.community-follow { min-width: 200px; max-width: 100%; }
+.community-follow button { width: 100%; }
+.community-follow p { max-width: 25rem; overflow-wrap: anywhere; }
+.community-tabs { display: flex; flex-wrap: wrap; gap: 6px 20px; margin: 28px 0 20px; border-bottom: 1px solid var(--line); }
+.community-tabs a { min-height: 44px; padding: 12px 4px; text-decoration: none; border-bottom: 2px solid transparent; }
+.community-tabs a[aria-current] { color: var(--neon-cyan); border-color: var(--neon-cyan); }
+.community-tabs a:hover { background: var(--bg-2); }
+.community-library { margin-top: 24px; }
+.community-rating { color: var(--neon-cyan); overflow-wrap: anywhere; }
+.community-pagination { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 16px; margin-top: 28px; }
+.community-status { padding: 32px 0; min-height: 120px; }
+.community-note { line-height: 1.6; }
+.community-page a:active { opacity: .8; }
+@media (max-width: 480px) { .community-page { padding: 24px 16px 60px; } .community-profile > .community-follow { width: 100%; } }
+.community-profile { background: radial-gradient(ellipse at top left, color-mix(in srgb, var(--neon-purple) 10%, transparent), transparent 65%), var(--bg-1); }
+.community-stats dd a { display: inline-flex; align-items: center; min-height: 44px; gap: .5rem; text-decoration: none; }
+.community-stats dd a > span[aria-hidden] { font-size: .85rem; color: var(--text-lo); }
+.community-stats dd a:hover { color: var(--neon-cyan); }
+.community-content { min-height: 200px; }
+.profile-comments { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; list-style: none; padding: 0; margin: 1rem 0; }
+.profile-comments > li { min-width: 0; }
+.profile-comment { display: flex; flex-direction: column; height: 100%; padding: 1.3rem; border: 1px solid var(--line); border-radius: var(--radius); background: var(--bg-1); }
+.profile-comment-game { display: flex; gap: 1rem; align-items: center; min-width: 0; text-decoration: none; }
+.profile-comment-game img { flex: 0 0 48px; width: 48px; height: 64px; object-fit: cover; border-radius: 5px; }
+.profile-comment-game > div { min-width: 0; flex: 1; }
+.profile-comment-game h3 { margin: .25rem 0; font: 500 1.1rem/1.4 var(--font-display); overflow-wrap: anywhere; }
+.profile-comment-body { margin: 1.2rem 0; line-height: 1.65; white-space: pre-wrap; overflow-wrap: anywhere; }
+.profile-comment footer { display: flex; flex-wrap: wrap; justify-content: space-between; gap: .5rem; margin-top: auto; padding-top: .7rem; border-top: 1px dashed var(--line); color: var(--text-lo); font-size: .85rem; }
+.profile-comment-likes { color: var(--neon-magenta); }
+.profile-comment-open { display: flex; justify-content: space-between; gap: .5rem; align-items: center; min-height: 44px; margin-top: .5rem; font-size: .85rem; }
+.profile-comment a:hover { color: var(--neon-cyan); }
+@media (max-width: 650px) { .profile-comments { grid-template-columns: minmax(0, 1fr); } .community-stats { gap: 12px 24px; } }
+@media (prefers-reduced-motion: no-preference) {
+  .community-content { animation: profile-content-arrive 300ms cubic-bezier(.22, 1, .36, 1) both; }
+  .community-tabs a { transition: color 180ms, border-color 180ms, background 180ms; }
+  @keyframes profile-content-arrive { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+}

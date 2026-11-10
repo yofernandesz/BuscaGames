@@ -1,0 +1,23 @@
+{
+  "results": [
+    {
+      "width": 1440,
+      "acceptedReload": true,
+      "rejectedReload": true,
+      "authenticated": true,
+      "manualReview": true,
+      "keyboard": true,
+      "overflow": false
+    },
+    {
+      "width": 320,
+      "acceptedReload": true,
+      "rejectedReload": true,
+      "authenticated": true,
+      "manualReview": true,
+      "keyboard": true,
+      "overflow": false
+    }
+  ],
+  "errors": []
+}
