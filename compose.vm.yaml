@@ -1,0 +1,33 @@
+name: buscagames-vm
+
+services:
+  api:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    environment:
+      NODE_ENV: production
+      PORT: "3001"
+      DATABASE_PATH: /app/data/catalog.sqlite
+      SESSION_COOKIE_SECURE: "true"
+      TRUST_PROXY: "false"
+      IGDB_CLIENT_ID: ${IGDB_CLIENT_ID:?Configure IGDB_CLIENT_ID no .env}
+      IGDB_CLIENT_SECRET: ${IGDB_CLIENT_SECRET:?Configure IGDB_CLIENT_SECRET no .env}
+      SYNC_HOUR_UTC: ${SYNC_HOUR_UTC:-6}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
+      GOOGLE_REDIRECT_URI: ${GOOGLE_REDIRECT_URI:-}
+    # Somente o proxy HTTPS da VM deverá acessar esta porta.
+    ports:
+      - "127.0.0.1:3001:3001"
+    volumes:
+      - catalog-data:/app/data
+    restart: unless-stopped
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+volumes:
+  catalog-data:

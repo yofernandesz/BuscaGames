@@ -1,0 +1,24 @@
+# Publicar somente o frontend e suas regras compartilhadas.
+*
+!vercel.json
+!package.json
+!frontend/
+!frontend/**
+!shared/
+!shared/**
+.env
+.env.*
+**/.env
+**/.env.*
+**/*.sqlite*
+**/*.pem
+**/*.key
+**/node_modules/**
+**/dist/**
+.git/**
+.agents/**
+.codex/**
+backend/**
+evidencias/**
+tests/**
+docs/**

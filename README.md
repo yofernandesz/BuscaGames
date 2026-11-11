@@ -85,6 +85,9 @@ Veja os detalhes em [Frontend](frontend/README.md) e [Backend](backend/README.md
 
 ## Docker
 
+Para a preparação da publicação na Vercel e a avaliação do backend gratuito,
+consulte o [guia de implantação](docs/DEPLOY.md).
+
 O [Dockerfile](Dockerfile) compila o frontend com Node.js e serve o resultado
 com Nginx em uma imagem Alpine, sem executar como root.
 
