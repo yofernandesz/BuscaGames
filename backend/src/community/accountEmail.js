@@ -97,7 +97,7 @@ export async function handleAccountEmail(db, route, data, { currentUserId, send,
     const email = normalizeEmail(data.email);
     if (!validAccountEmail(email)) fail(400, 'Informe um e-mail válido.', 'email');
     limit(`${route}:${email}`, 5);
-    if (!deliver) fail(503, 'O envio de e-mails está temporariamente indisponível. Tente novamente mais tarde.');
+    if (!deliver) fail(503, 'Envio de e-mail indisponível no momento. Tente entrar com o Google.');
     send(202, { accepted: true });
     // Account lookup and delivery happen after the same response for every address.
     setImmediate(async () => {

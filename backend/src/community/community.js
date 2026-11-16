@@ -380,7 +380,7 @@ export function communityHandler(db, deliver = accountEmailDelivery()) {
         const name = typeof data.name === 'string' ? data.name.trim() : '';
         limit(`${registering ? 'register' : 'login'}:${email}`, registering ? 5 : 10, res);
         if (registering) {
-          if (!deliver) fail(503, 'O cadastro por e-mail está temporariamente indisponível. Tente novamente mais tarde.');
+          if (!deliver) fail(503, 'Cadastro por e-mail indisponível no momento. Tente entrar com o Google.');
           const { passwordHash, salt } = await derivePassword(data.password, res);
           let message;
           try {
