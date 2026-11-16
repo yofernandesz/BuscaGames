@@ -34,6 +34,10 @@ test('notifications: real actions, ownership, read snapshot, pagination and emai
     await request('/api/comments/1/replies', 'POST', { body: 'Obrigado!' }, 2);
     const inbox = (await request('/api/notifications', 'GET', undefined, 2)).data;
     assert.equal(inbox.unreadCount, 3);
+    assert.equal(inbox.notifications[0].gameTitle, 'Jogo');
+    assert.equal(inbox.notifications[0].commentBody, 'Olá!');
+    assert.equal(inbox.notifications[0].followerCount, 0);
+    assert.equal(inbox.notifications[0].avatarUrl, null);
     assert.deepEqual(inbox.notifications.map(row => row.kind), ['reply', 'like', 'follow']);
     assert.equal(inbox.notifications[0].path, '/jogo/igdb-1#comentarios');
     assert.doesNotMatch(JSON.stringify(inbox.notifications), /email|password|salt/);

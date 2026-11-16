@@ -41,14 +41,18 @@ export async function handleNotifications(db, req, url, { userId, readBody, requ
   requireActive(userId);
   const unreadCount = () => db.prepare('SELECT COUNT(*) AS n FROM notifications WHERE recipient_id=? AND read_at IS NULL').get(userId).n;
   if (req.method === 'GET' && url.pathname === '/api/notifications/count') {
-    send(200, { unreadCount: unreadCount() }); return;
+    send(200, { unreadCount: unreadCount(), latestId: db.prepare('SELECT MAX(id) AS id FROM notifications WHERE recipient_id=?').get(userId).id }); return;
   }
   if (req.method === 'GET' && url.pathname === '/api/notifications') {
     const before = Number(url.searchParams.get('before') || Number.MAX_SAFE_INTEGER);
     if (!Number.isSafeInteger(before) || before < 1) fail(400, 'Página inválida.');
     const rows = db.prepare(`SELECT n.id,n.kind,n.actor_id AS actorId,u.name AS actor,
-      n.created_at AS createdAt,n.read_at AS readAt,c.game_id AS gameId
-      FROM notifications n JOIN users u ON u.id=n.actor_id LEFT JOIN comments c ON c.id=n.comment_id
+      n.created_at AS createdAt,n.read_at AS readAt,c.game_id AS gameId,
+      COALESCE(p.custom_url,p.google_url) AS avatarUrl,
+      (SELECT COUNT(*) FROM user_follows f WHERE f.followed_id=u.id) AS followerCount,
+      c.body AS commentBody,g.title AS gameTitle
+      FROM notifications n JOIN users u ON u.id=n.actor_id LEFT JOIN profile_photos p ON p.user_id=u.id
+      LEFT JOIN comments c ON c.id=n.comment_id LEFT JOIN games g ON g.id=c.game_id
       WHERE n.recipient_id=? AND n.id<? ORDER BY n.id DESC LIMIT 21`).all(userId, before);
     send(200, { notifications: rows.slice(0, 20).map(row => ({ ...row, message: notificationMessage(row.kind), path: notificationPath(row) })),
       nextCursor: rows.length > 20 ? rows[19].id : null, unreadCount: unreadCount(),

@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import Header from '../../../components/layout/Header';
 import Skeleton from '../../../components/ui/Skeleton';
+import Avatar from '../../../components/ui/Avatar';
 import { useGames } from '../../games/hooks/useGames';
 import { useCommunityQuery } from '../../../hooks/useCommunityQuery';
 import { communityApi } from '../../../lib/communityApi';
@@ -25,6 +26,12 @@ function NotificationList() {
   const [busy, setBusy] = useState(false);
   const [feedback, setFeedback] = useState('');
   const [error, setError] = useState('');
+  const [hasNew, setHasNew] = useState(false);
+  useEffect(() => {
+    const arrived = () => setHasNew(true);
+    window.addEventListener('notifications-arrived', arrived);
+    return () => window.removeEventListener('notifications-arrived', arrived);
+  }, []);
   const alive = useRef(true);
   useEffect(() => { alive.current = true; return () => { alive.current = false; }; }, []);
   async function change(path, body, transform, message) {
@@ -41,11 +48,12 @@ function NotificationList() {
   }
   const data = query.data;
   return <section aria-label="Suas notificações" aria-busy={query.loading || busy}>
+    {hasNew && <div className="notification-new" role="status">Novas interações chegaram! <button className="btn-ghost" disabled={busy} onClick={() => { setHasNew(false); setParams({}); query.retry(); }}>Mostrar novas notificações</button></div>}
     {query.loading && <Skeleton variant="rows" label="Carregando notificações…" />}
     {query.error && <div role="alert"><p>{query.error}</p><button className="btn-ghost" onClick={query.retry}>Tentar novamente</button></div>}
     {data && <>
       <div className="notifications-toolbar">
-        <strong>{data.unreadCount.toLocaleString('pt-BR')} não lidas</strong>
+        <strong>{data.unreadCount.toLocaleString('pt-BR')} {data.unreadCount === 1 ? 'não lida' : 'não lidas'}</strong>
         <button className="btn-ghost" disabled={busy || !data.unreadCount} onClick={() => change('/api/notifications/read', { throughId: data.latestId },
           (current, result) => ({ ...current, unreadCount: result.unreadCount, notifications: current.notifications.map(item => ({ ...item, readAt: item.readAt || new Date().toISOString() })) }), 'Notificações marcadas como lidas.')}>Marcar todas como lidas</button>
         <button className="btn-ghost" disabled={busy} onClick={query.retry}>Atualizar</button>
@@ -54,8 +62,11 @@ function NotificationList() {
         (current, result) => ({ ...current, emailEnabled: result.emailEnabled }), 'Preferência de email salva.')} />Receber alertas por email</label>
       {!data.emailAvailable && <p className="notifications-intro">O envio de emails ainda não está disponível. Sua preferência ficará salva.</p>}
       {!data.notifications.length ? <p className="notifications-empty">Nenhuma notificação por aqui. Novas interações com seu perfil e seus comentários aparecerão nesta lista.</p> : <ol className="notification-list">
-        {data.notifications.map(item => <li key={item.id} className={item.readAt ? '' : 'notification-unread'}>
-          <div><p><Link to={`/perfil/${item.actorId}`}>{item.actor}</Link> {item.message}</p>
+        {data.notifications.map(item => <li key={item.id} data-kind={item.kind} className={item.readAt ? '' : 'notification-unread'}>
+          <Link className="notification-avatar" to={`/perfil/${item.actorId}`} aria-label={`Ver perfil de ${item.actor}`}><Avatar src={item.avatarUrl}>{item.actor.slice(0, 2).toUpperCase()}</Avatar><span aria-hidden="true">{item.kind === 'follow' ? '+' : item.kind === 'like' ? '♥' : '↩'}</span></Link>
+          <div className="notification-content"><span className="notification-kind">{item.kind === 'follow' ? 'Novo seguidor' : item.kind === 'like' ? 'Curtida recebida' : 'Nova resposta'}</span><p><Link to={`/perfil/${item.actorId}`}>{item.actor}</Link> {item.message}</p>
+            {item.followerCount != null && <Link className="notification-followers" to={`/perfil/${item.actorId}?aba=followers`}>{item.followerCount.toLocaleString('pt-BR')} {item.followerCount === 1 ? 'seguidor' : 'seguidores'}</Link>}
+            {item.gameTitle && <div className="notification-context"><strong>{item.gameTitle}</strong><p>Seu comentário: “{item.commentBody}”</p></div>}
             <time dateTime={item.createdAt}>{new Date(item.createdAt).toLocaleString('pt-BR')}</time>
             <span className="notification-state">{item.readAt ? 'Lida' : 'Não lida'}</span>
           </div>

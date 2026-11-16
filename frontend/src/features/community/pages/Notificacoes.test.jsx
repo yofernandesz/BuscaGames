@@ -67,3 +67,13 @@ it('não consulta notificações de visitantes', () => {
   expect(screen.getByRole('button', { name: 'Entrar para ver notificações' })).toBeInTheDocument();
   expect(communityApi).not.toHaveBeenCalled();
 });
+
+it('anuncia novas interações sem trocar a lista durante a leitura', async () => {
+  open();
+  await screen.findByText('Não lida');
+  fireEvent(window, new Event('notifications-arrived'));
+  expect(screen.getByText('Novas interações chegaram!')).toBeInTheDocument();
+  fireEvent.click(screen.getByRole('button', { name: 'Mostrar novas notificações' }));
+  await waitFor(() => expect(screen.queryByText('Novas interações chegaram!')).not.toBeInTheDocument());
+  expect(await screen.findByText('Não lida')).toBeInTheDocument();
+});

@@ -600,3 +600,15 @@ Há uma mensagem de status por região e formas aria-hidden, sem foco. A pulsaç
 só é habilitada sem preferência por movimento reduzido. Não há timers artificiais,
 dependências ou mudanças de API. Verificação: testes de componente e
 `tests/e2e/skeleton-browser.cjs` com respostas retidas, falhas e viewport de 320px.
+
+### Contexto e movimento das notificações
+
+Notificações reutilizam Avatar.jsx com iniciais em falha, nome público, seguidores
+atuais e, em curtidas/respostas, jogo e comentário de origem. O selo identifica
+seguidor (+/ciano), curtida (coração/magenta) e resposta (seta/roxo), também por texto.
+NotificationButton compara latestId entre consultas, sem celebrar o primeiro
+carregamento ou marcação de leitura. Uma chegada balança o sino e pulsa o contador;
+a página anuncia novas interações com ação explícita para atualizar, preservando
+posição e leitura. Cards entram em 450ms; botões respondem a hover e pressão.
+Todos os movimentos são finitos e respeitam movimento reduzido. Sem novas fontes,
+cores de marca ou dependências. API projeta somente dados públicos do ator.

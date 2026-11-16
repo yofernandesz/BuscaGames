@@ -6,15 +6,24 @@ import '../styles/notifications.css';
 export default function NotificationButton() {
   const [count, setCount] = useState(null);
   const [failed, setFailed] = useState(false);
+  const [arrival, setArrival] = useState(0);
   useEffect(() => {
     let controller;
+    let latest;
     async function refresh() {
       controller?.abort();
       const request = new AbortController();
       controller = request;
       try {
         const data = await communityApi('/api/notifications/count', { signal: request.signal });
-        if (!request.signal.aborted) { setCount(data.unreadCount); setFailed(false); }
+        if (!request.signal.aborted) {
+          if (latest !== undefined && data.latestId > latest) {
+            setArrival(value => value + 1);
+            window.dispatchEvent(new Event('notifications-arrived'));
+          }
+          latest = data.latestId ?? 0;
+          setCount(data.unreadCount); setFailed(false);
+        }
       } catch {
         if (!request.signal.aborted) setFailed(true);
       }
@@ -33,8 +42,8 @@ export default function NotificationButton() {
     };
   }, []);
   const label = failed ? 'Notificações: contagem indisponível' : count == null ? 'Notificações: carregando contagem' : `Notificações: ${count.toLocaleString('pt-BR')} não lidas`;
-  return <NavLink className="notification-button" to="/notificacoes" aria-label={label} title={label}>
-    <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4" /></svg>
-    <span>Notificações</span><span className="notification-count" aria-hidden="true">{failed ? '!' : count == null ? '…' : count > 99 ? '99+' : count}</span>
+  return <NavLink className={`notification-button${arrival ? ' notification-arrival' : ''}`} to="/notificacoes" aria-label={label} title={label}>
+    <svg key={`bell-${arrival}`} aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4" /></svg>
+    <span>Notificações</span><span key={`count-${arrival}`} className="notification-count" aria-hidden="true">{failed ? '!' : count == null ? '…' : count > 99 ? '99+' : count}</span>
   </NavLink>;
 }
