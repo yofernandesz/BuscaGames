@@ -3,11 +3,13 @@ import assert from 'node:assert/strict';
 import { openCatalog, upsertGames } from '../src/catalog/catalog.js';
 import { createApp } from '../src/server.js';
 import { initializeCommunity } from '../src/community/community.js';
+import { activateTestAccount, testMailbox } from '../test-support/accountEmail.js';
 
 test('auth: favorites ownership, Google PKCE/state, replay, linking and callback recovery', async (t) => {
   const db = openCatalog(':memory:');
   upsertGames(db, [{ id: 1, name: 'Teste' }]);
-  const app = createApp(db);
+  const mailbox = testMailbox();
+  const app = createApp(db, false, mailbox.deliver);
   await new Promise((resolve) => app.listen(0, '127.0.0.1', resolve));
   const base = `http://127.0.0.1:${app.address().port}`;
   const realFetch = globalThis.fetch;
@@ -53,7 +55,8 @@ test('auth: favorites ownership, Google PKCE/state, replay, linking and callback
     assert.equal((await request('/api/games/igdb-1/favorite', 'PUT', { favorite: true })).status, 401);
     Object.assign(process.env, { GOOGLE_CLIENT_ID: 'test-client', GOOGLE_CLIENT_SECRET: 'test-secret', GOOGLE_REDIRECT_URI: `${base}/api/auth/google/callback` });
     const credentials = { name: 'Ana', email: 'ana@example.com', password: 'nuvem-lunar-unica', passwordConfirmation: 'nuvem-lunar-unica' };
-    const registered = await request('/api/auth/register', 'POST', credentials);
+    assert.equal((await request('/api/auth/register', 'POST', credentials)).status, 201);
+    const registered = await activateTestAccount(request, mailbox, credentials);
     const cookie = registered.cookies[0];
     assert.equal((await request('/api/games/igdb-1/favorite', 'PUT', { favorite: true }, cookie)).status, 200);
     assert.deepEqual((await request('/api/games/igdb-1/favorite', 'PUT', { favorite: true }, cookie)).data.user.favorites, ['igdb-1']);
@@ -67,6 +70,9 @@ test('auth: favorites ownership, Google PKCE/state, replay, linking and callback
     const googleCookie = response.cookies.find((value) => value.startsWith('bg_session='));
     const googleUser = (await request('/api/auth/me', 'GET', undefined, googleCookie)).data.user;
     assert.equal(googleUser.googleLinked, true);
+    assert.equal(googleUser.emailVerified, true);
+    assert.equal((await request('/api/auth/forgot-password', 'POST', { email: identity.email })).status, 202);
+    assert.equal(mailbox.token(identity.email), undefined);
     assert.equal(googleUser.avatarUrl, identity.picture);
     const photo = 'iVBORw0KGgoAAAANSUhEUgAAAIAAAACACAAAAADmVT4XAAAAJklEQVR4nO3BAQEAAACCIP+vbkhAAQAAAAAAAAAAAAAAAAAAAO8GQIAAAfnHrWYAAAAASUVORK5CYII=';
     const avatar = '/api/auth/avatar';
@@ -185,6 +191,7 @@ test('auth: favorites ownership, Google PKCE/state, replay, linking and callback
     assert.equal(db.prepare('SELECT COUNT(*) AS n FROM users').get().n, 2);
 
     // Google identities with an occupied nickname get their own unique name.
+    db.prepare('UPDATE auth_attempts SET expires=0').run();
     for (const [index, expected] of ['ANA-2', 'ANA-3'].entries()) {
       identity = { sub: `same-name-${index}`, name: ' ANA ', email: `same-name-${index}@example.com`, email_verified: true };
       flow = await start();

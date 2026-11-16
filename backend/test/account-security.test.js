@@ -4,6 +4,7 @@ import { createHash, scryptSync } from 'node:crypto';
 import { openCatalog } from '../src/catalog/catalog.js';
 import { createApp } from '../src/server.js';
 import { validateAccount, passwordRequirements } from '../../shared/accountPolicy.mjs';
+import { activateTestAccount, testMailbox } from '../test-support/accountEmail.js';
 
 const password = 'café violeta lunar';
 const credentials = { name: 'Ana', email: 'ana@example.com', password, passwordConfirmation: password };
@@ -11,15 +12,16 @@ const hash = (value) => createHash('sha256').update(value).digest('hex');
 
 async function fixture(t) {
   const db = openCatalog(':memory:');
+  const mailbox = testMailbox();
   let app;
   const start = async () => {
-    app = createApp(db);
+    app = createApp(db, false, mailbox.deliver);
     await new Promise((resolve) => app.listen(0, '127.0.0.1', resolve));
   };
   await start();
   t.after(async () => { await new Promise((resolve) => app.close(resolve)); db.close(); });
   return {
-    db,
+    db, mailbox,
     restart: async () => { await new Promise((resolve) => app.close(resolve)); await start(); },
     async request(path, body, headers = {}, method = 'POST') {
       const response = await fetch(`http://127.0.0.1:${app.address().port}${path}`, {
@@ -60,7 +62,7 @@ test('registration policy: length, confirmation, common patterns, personal data 
 });
 
 test('API rejects bypasses and oversized requests; hashes secrets and rotates/revokes sessions', async (t) => {
-  const { db, request } = await fixture(t);
+  const { db, request, mailbox } = await fixture(t);
   const register = (body, headers) => request('/api/auth/register', body, headers);
   for (const body of [null, [], { ...credentials, password: 'curta' }, { ...credentials, passwordConfirmation: 'diferente' }, { ...credentials, name: 'A\0B' }]) {
     assert.equal((await register(body)).status, 400);
@@ -72,21 +74,24 @@ test('API rejects bypasses and oversized requests; hashes secrets and rotates/re
   assert.equal(db.prepare('SELECT COUNT(*) AS n FROM users').get().n, 0);
   const created = await register({ ...credentials, email: ' ANA@EXAMPLE.COM ', role: 'admin', id: 99 });
   assert.equal(created.status, 201);
-  assert.equal(created.data.user.email, credentials.email);
-  assert.notEqual(created.data.user.id, 99);
-  assert.equal(created.data.user.password_hash, undefined);
-  assert.match(created.cookie, /HttpOnly; SameSite=Lax/);
+  assert.deepEqual(created.data, { user: null, verificationRequired: true, emailSent: true });
+  assert.equal(created.cookie, null);
+  const active = await activateTestAccount((path, method, body) => request(path, body, {}, method), mailbox, credentials);
+  assert.equal(active.data.user.email, credentials.email);
+  assert.notEqual(active.data.user.id, 99);
+  assert.equal(active.data.user.password_hash, undefined);
+  assert.match(active.cookie, /HttpOnly; SameSite=Lax/);
   const stored = db.prepare('SELECT * FROM users').get();
   assert.match(stored.password_hash, /^scrypt-v2\$[a-f0-9]{128}$/);
   assert.equal(stored.salt.length, 32);
-  const cookie = created.cookie.split(';')[0];
+  const cookie = active.cookie.split(';')[0];
   assert.equal(db.prepare('SELECT token FROM sessions').get().token, hash(cookie.split('=')[1]));
   const duplicate = await register(credentials);
   assert.equal(duplicate.status, 409);
   assert.equal(duplicate.cookie, null);
   const logged = await request('/api/auth/login', credentials, { Cookie: cookie });
   assert.equal(logged.status, 200);
-  assert.notEqual(logged.cookie, created.cookie);
+  assert.notEqual(logged.cookie, active.cookie);
   assert.equal((await request('/api/auth/me', undefined, { Cookie: cookie }, 'GET')).data.user, null);
   const nextCookie = logged.cookie.split(';')[0];
   await request('/api/auth/logout', {}, { Cookie: nextCookie });
@@ -149,7 +154,7 @@ test('concurrent duplicate registrations create exactly one account', async (t) 
   const responses = await Promise.all([request('/api/auth/register', credentials), request('/api/auth/register', credentials)]);
   assert.deepEqual(responses.map((response) => response.status).sort(), [201, 409]);
   assert.equal(db.prepare('SELECT COUNT(*) AS n FROM users').get().n, 1);
-  assert.equal(db.prepare('SELECT COUNT(*) AS n FROM sessions').get().n, 1);
+  assert.equal(db.prepare('SELECT COUNT(*) AS n FROM sessions').get().n, 0);
 });
 
 test('nickname uniqueness rejects equivalent names and concurrent requests with different emails', async (t) => {
@@ -162,7 +167,7 @@ test('nickname uniqueness rejects equivalent names and concurrent requests with 
   assert.match(rejected.data.error, /nickname já está em uso/);
   assert.equal(rejected.cookie, null);
   assert.equal(db.prepare('SELECT COUNT(*) AS n FROM users').get().n, 1);
-  assert.equal(db.prepare('SELECT COUNT(*) AS n FROM sessions').get().n, 1);
+  assert.equal(db.prepare('SELECT COUNT(*) AS n FROM sessions').get().n, 0);
   for (const [index, name] of ['ÁNA MARIA', 'Ána\u00a0Maria', 'Áｎａ Maria'].entries()) {
     const response = await request('/api/auth/register', { ...credentials, name, email: `other${index}@example.com` });
     assert.equal(response.status, 409);

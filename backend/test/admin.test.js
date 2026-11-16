@@ -2,10 +2,12 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { openCatalog } from '../src/catalog/catalog.js';
 import { createApp } from '../src/server.js';
+import { activateTestAccount, testMailbox } from '../test-support/accountEmail.js';
 
 test('administration requires independent authorized login, rechecks roles and persists actions', async () => {
   const db = openCatalog(':memory:');
-  const server = createApp(db);
+  const mailbox = testMailbox();
+  const server = createApp(db, false, mailbox.deliver);
   await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
   const call = (path, cookie = '', body) => fetch(`http://127.0.0.1:${server.address().port}/api/${path}`, {
     method: body ? 'POST' : 'GET', headers: { Cookie: cookie, 'Content-Type': 'application/json', 'X-BuscaGames-Request': '1' },
@@ -14,7 +16,9 @@ test('administration requires independent authorized login, rechecks roles and p
   const password = 'Galáxias sob luas';
   const account = { name: 'Equipe', email: 'teste@example.org', password, passwordConfirmation: password };
   try {
-    const registered = await call('auth/register', '', account);
+    const activate = (data) => activateTestAccount((path, _method, body) => call(path.slice('/api/'.length), '', body), mailbox, data);
+    assert.equal((await call('auth/register', '', account)).status, 201);
+    const registered = await activate(account);
     const regular = registered.headers.get('set-cookie').split(';')[0];
     assert.equal((await call('admin/login', '', account)).status, 401);
     db.prepare('INSERT INTO administrators VALUES (1)').run();
@@ -38,7 +42,8 @@ test('administration requires independent authorized login, rechecks roles and p
     await call('admin/chat', cookie, { message: 'Revisão concluída' });
     assert.equal((await (await call('admin/chat', cookie)).json()).rows[0].Mensagem, 'Revisão concluída');
     const other = { ...account, name: 'Segunda conta', email: 'outra@example.org' };
-    const otherCookie = (await call('auth/register', '', other)).headers.get('set-cookie').split(';')[0];
+    assert.equal((await call('auth/register', '', other)).status, 201);
+    const otherCookie = (await activate(other)).headers.get('set-cookie').split(';')[0];
     assert.equal((await (await call('auth/me', regular)).json()).user.reviewed, true);
     assert.equal((await (await call('auth/me', otherCookie)).json()).user.reviewed, false);
     assert.equal((await call('admin/usuarios', cookie, { id: 1, action: 'block' })).status, 400);

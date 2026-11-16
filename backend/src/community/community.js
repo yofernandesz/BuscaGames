@@ -8,6 +8,7 @@ import { initializeSocial, handleSocial } from './social.js';
 import { initializeNicknames, changeNickname, nicknameAvailability } from './nicknames.js';
 import { validateBackground } from './profileBackground.js';
 import { initializeNotifications, handleNotifications } from './notifications.js';
+import { accountEmailDelivery, accountEmailRoutes, accountTransaction, handleAccountEmail, initializeAccountEmail, issueAccountEmailToken } from './accountEmail.js';
 
 const deriveKey = promisify(scrypt);
 const hash = (value) => createHash('sha256').update(value).digest('hex');
@@ -76,6 +77,7 @@ export function initializeCommunity(db) {
   initializeNicknames(db);
   initializeSocial(db);
   initializeNotifications(db);
+  initializeAccountEmail(db);
   if (!db.prepare('PRAGMA table_info(google_flows)').all().some(column => column.name === 'admin_login')) {
     db.exec('ALTER TABLE google_flows ADD COLUMN admin_login INTEGER NOT NULL DEFAULT 0');
   }
@@ -101,10 +103,10 @@ async function readJsonBody(req, maxBytes = 8192) {
   } catch { fail(400, 'Dados inválidos.'); }
 }
 
-export function communityHandler(db) {
+export function communityHandler(db, deliver = accountEmailDelivery()) {
   // Bound password derivations and repeated attempts without adding a service dependency.
   let hashing = 0;
-  const limit = (key, maximum, res) => {
+  const limit = (key, maximum, res) => accountTransaction(db, () => {
     const now = Date.now();
     db.prepare('DELETE FROM auth_attempts WHERE expires<=?').run(now);
     const digest = hash(key);
@@ -114,13 +116,26 @@ export function communityHandler(db) {
       fail(429, 'Muitas tentativas. Aguarde alguns minutos e tente novamente.');
     }
     db.prepare('INSERT INTO auth_attempts VALUES (?,1,?) ON CONFLICT(key) DO UPDATE SET count=count+1').run(digest, now + 900000);
+  });
+  const hashPassword = async (password, res, salt, options = passwordOptions) => {
+    if (hashing >= 4) { res.setHeader('Retry-After', '5'); fail(429, 'Muitas tentativas. Aguarde alguns segundos.'); }
+    hashing++;
+    try { return await deriveKey(password, salt, 64, options); }
+    finally { hashing--; }
   };
+  const derivePassword = async (password, res) => {
+    const salt = randomBytes(16).toString('hex');
+    const key = await hashPassword(password, res, salt);
+    return { salt, passwordHash: passwordPrefix + key.toString('hex') };
+  };
+  const pendingEmail = (id) => Boolean(db.prepare('SELECT 1 FROM account_emails WHERE user_id=? AND verified_at IS NULL').get(id));
   const requireActive = (id) => {
     if (db.prepare('SELECT 1 FROM blocked_users WHERE user_id=?').get(id)) fail(403, 'Conta bloqueada pela administração.');
   };
   const profile = (id) => {
     const user = db.prepare('SELECT id, name, email, COALESCE(custom_url, google_url) AS avatarUrl, custom_url IS NOT NULL AS customPhoto FROM users LEFT JOIN profile_photos ON user_id=id WHERE id=?').get(id);
     return { ...user, backgroundUrl: db.prepare('SELECT url FROM profile_backgrounds WHERE user_id=?').get(id)?.url ?? null,
+      emailVerified: Boolean(db.prepare('SELECT verified_at FROM account_emails WHERE user_id=?').get(id)?.verified_at),
       ...nicknameAvailability(db, id),
       reviewed: Boolean(db.prepare('SELECT 1 FROM admin_reviews WHERE user_id=?').get(id)),
       googleLinked: Boolean(db.prepare('SELECT 1 FROM google_accounts WHERE user_id=?').get(id)),
@@ -132,6 +147,7 @@ export function communityHandler(db) {
   };
   const handleGoogle = googleAuthHandler(db);
   return async (req, res, url) => {
+    const emailRoute = url.pathname.startsWith('/api/auth/') && url.pathname.slice('/api/auth/'.length);
     const gameRoute = /^\/api\/games\/igdb-(\d+)\/(comments|rating|favorite)$/.exec(url.pathname);
     const commentRoute = /^\/api\/comments\/(\d+)$/.exec(url.pathname);
     const replyRoute = /^\/api\/comments\/(\d+)\/replies$/.exec(url.pathname);
@@ -163,24 +179,32 @@ export function communityHandler(db) {
         res.end(photo.custom_png);
         return true;
       }
-      if (req.method === 'POST' && ['/api/auth/register', '/api/auth/login', '/api/auth/google/start','/api/admin/login'].includes(url.pathname)) {
+      if (req.method === 'POST' && (accountEmailRoutes.has(emailRoute) || ['/api/auth/register', '/api/auth/login', '/api/auth/google/start','/api/admin/login'].includes(url.pathname))) {
         // Only enable behind a private API and a proxy that overwrites this header.
         const forwarded = req.headers['x-buscagames-client-ip'];
         const address = process.env.TRUST_PROXY === 'true' && typeof forwarded === 'string' && isIP(forwarded) ? forwarded : req.socket.remoteAddress;
-        limit(`ip:${address}`, 30, res);
+        limit(accountEmailRoutes.has(emailRoute) ? `email-ip:${address}` : `ip:${address}`, 30, res);
       }
       const token = /(?:^|;\s*)bg_session=([a-f0-9]{64})(?:;|$)/.exec(req.headers.cookie || '')?.[1];
-      const session = token && db.prepare('SELECT user_id FROM sessions WHERE token=? AND expires>?').get(hash(token), Date.now());
-      const userId = session?.user_id;
+      const findSession = () => token && db.prepare(`SELECT user_id FROM sessions s WHERE token=? AND expires>?
+        AND NOT EXISTS (SELECT 1 FROM account_emails WHERE user_id=s.user_id AND verified_at IS NULL)`).get(hash(token), Date.now());
+      const userId = findSession()?.user_id;
       const readBody = async (request, maxBytes) => {
         const data = await readJsonBody(request, maxBytes);
         // Receiving a body yields to logout, expiration and administrative revocation.
         // Recheck the exact session before any account mutation or OAuth linking.
-        if (!adminRoute && userId && !db.prepare('SELECT 1 FROM sessions WHERE token=? AND user_id=? AND expires>?').get(hash(token), userId, Date.now())) {
+        if (!adminRoute && userId && findSession()?.user_id !== userId) {
           fail(401, 'Sua sessão expirou. Entre novamente para continuar.');
         }
         return data;
       };
+      if (accountEmailRoutes.has(emailRoute)) {
+        if (req.method !== 'POST') fail(405, 'Método não permitido.');
+        const data = await (emailRoute === 'resend-verification' ? readBody(req) : readJsonBody(req));
+        await handleAccountEmail(db, emailRoute, data, { currentUserId: () => findSession()?.user_id ?? 0, send, fail, deliver,
+          limit: (key, maximum) => limit(key, maximum, res), derivePassword: (password) => derivePassword(password, res) });
+        return true;
+      }
       if (notificationRoute) {
         await handleNotifications(db, req, url, { userId, readBody, requireActive, fail, send });
         return true;
@@ -217,6 +241,7 @@ export function communityHandler(db) {
       const cookie = (value, age) => `bg_session=${value}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${age}${process.env.SESSION_COOKIE_SECURE === 'true' || req.socket.encrypted || (process.env.NODE_ENV === 'production' && process.env.SESSION_COOKIE_SECURE !== 'false') ? '; Secure' : ''}`;
       const startSession = (id) => {
         requireActive(id);
+        if (pendingEmail(id)) fail(403, 'Confirme seu e-mail antes de entrar.');
         db.prepare('DELETE FROM sessions WHERE expires<=?').run(Date.now());
         if (token) db.prepare('DELETE FROM sessions WHERE token=?').run(hash(token));
         const nextToken = randomBytes(32).toString('hex');
@@ -228,6 +253,7 @@ export function communityHandler(db) {
       const startAdminSession = (id) => {
         if (!id || !db.prepare('SELECT 1 FROM administrators WHERE user_id=?').get(id)) fail(403, 'Conta sem acesso administrativo.');
         requireActive(id);
+        if (pendingEmail(id)) fail(403, 'Confirme seu e-mail antes de entrar.');
         const next = randomBytes(32).toString('hex');
         db.prepare('DELETE FROM admin_sessions WHERE expires<=? OR token=?').run(Date.now(), hash(adminToken || ''));
         db.prepare('INSERT INTO admin_sessions VALUES (?,?,?)').run(hash(next), id, Date.now() + 8 * 3600000);
@@ -236,7 +262,8 @@ export function communityHandler(db) {
       if (adminRoute && !adminLogin) {
         const admin = adminToken && db.prepare(`SELECT u.id,u.name,u.avatarUrl, EXISTS(SELECT 1 FROM admin_reviews WHERE user_id=u.id) AS reviewed FROM admin_sessions s
           JOIN administrators a ON a.user_id=s.user_id JOIN admin_user_profiles u ON u.id=a.user_id
-          WHERE s.token=? AND s.expires>?`).get(hash(adminToken), Date.now());
+          WHERE s.token=? AND s.expires>? AND NOT EXISTS
+            (SELECT 1 FROM account_emails WHERE user_id=s.user_id AND verified_at IS NULL)`).get(hash(adminToken), Date.now());
         if (!admin) fail(401, 'Entre com uma conta administrativa.');
         const section = url.pathname.slice('/api/admin/'.length);
         if (req.method === 'GET') {
@@ -352,40 +379,46 @@ export function communityHandler(db) {
         const email = normalizeEmail(data.email);
         const name = typeof data.name === 'string' ? data.name.trim() : '';
         limit(`${registering ? 'register' : 'login'}:${email}`, registering ? 5 : 10, res);
-        if (hashing >= 4) { res.setHeader('Retry-After', '5'); fail(429, 'Muitas tentativas. Aguarde alguns segundos.'); }
-        const existing = db.prepare('SELECT * FROM users WHERE email=?').get(email);
-        const salt = registering ? randomBytes(16).toString('hex') : existing?.salt || 'unregistered-user';
-        const legacy = !registering && /^[a-f0-9]{128}$/.test(existing?.password_hash || '');
-        let password;
-        hashing++;
-        let id;
-        try {
-          password = await deriveKey(data.password, salt, 64, legacy ? { ...passwordOptions, p: 1 } : passwordOptions);
-          if (registering) {
-            if (existing) fail(409, 'Não foi possível criar a conta com os dados informados. Tente entrar ou use outro e-mail.', 'email');
-            try { id = Number(db.prepare('INSERT INTO users(name,email,password_hash,salt) VALUES (?,?,?,?)').run(name, email, passwordPrefix + password.toString('hex'), salt).lastInsertRowid); }
-            catch (error) {
-              if (error.message.includes('Nickname já está em uso')) fail(409, 'Este nickname já está em uso. Escolha outro.', 'name');
-              if (error.message.includes('UNIQUE constraint failed: users.email')) fail(409, 'Não foi possível criar a conta com os dados informados. Tente entrar ou use outro e-mail.', 'email');
-              throw error;
-            }
-          } else {
-            const stored = existing?.password_hash.replace(/^scrypt-v2\$/, '') || '';
-            if (!/^[a-f0-9]{128}$/.test(stored) || !timingSafeEqual(password, Buffer.from(stored, 'hex'))) fail(401, 'E-mail ou senha incorretos.');
-            id = existing.id;
-            if (adminLogin && !db.prepare('SELECT 1 FROM administrators WHERE user_id=?').get(id)) fail(401, 'E-mail ou senha incorretos.');
-            if (legacy) {
-              const nextSalt = randomBytes(16).toString('hex');
-              const upgraded = await deriveKey(data.password, nextSalt, 64, passwordOptions);
-              db.prepare('UPDATE users SET password_hash=?, salt=? WHERE id=?').run(passwordPrefix + upgraded.toString('hex'), nextSalt, id);
-            }
-            db.prepare('DELETE FROM auth_attempts WHERE key=?').run(hash(`login:${email}`));
+        if (registering) {
+          if (!deliver) fail(503, 'O cadastro por e-mail está temporariamente indisponível. Tente novamente mais tarde.');
+          const { passwordHash, salt } = await derivePassword(data.password, res);
+          let message;
+          try {
+            message = accountTransaction(db, () => {
+              const id = Number(db.prepare('INSERT INTO users(name,email,password_hash,salt) VALUES (?,?,?,?)').run(name, email, passwordHash, salt).lastInsertRowid);
+              db.prepare('INSERT INTO account_emails VALUES (?,NULL)').run(id);
+              return issueAccountEmailToken(db, { id, email }, 'verify');
+            });
+          } catch (error) {
+            if (error.message.includes('Nickname já está em uso')) fail(409, 'Este nickname já está em uso. Escolha outro.', 'name');
+            if (error.message.includes('UNIQUE constraint failed: users.email')) fail(409, 'Não foi possível criar a conta com os dados informados. Tente entrar ou use outro e-mail.', 'email');
+            throw error;
           }
-        } finally { hashing--; }
-        if (adminLogin) {
-          send(200, { admin: { id, name: existing.name } }, { 'Set-Cookie': startAdminSession(id) }); return true;
+          send(201, { user: null, verificationRequired: true, emailSent: await deliver(message) }); return true;
         }
-        send(registering ? 201 : 200, { user: profile(id) }, { 'Set-Cookie': startSession(id) }); return true;
+
+        const existing = db.prepare('SELECT * FROM users WHERE email=?').get(email);
+        const legacy = /^[a-f0-9]{128}$/.test(existing?.password_hash || '');
+        const password = await hashPassword(data.password, res, existing?.salt || 'unregistered-user', legacy ? { ...passwordOptions, p: 1 } : passwordOptions);
+        const stored = existing?.password_hash.replace(/^scrypt-v2\$/, '') || '';
+        if (!/^[a-f0-9]{128}$/.test(stored) || !timingSafeEqual(password, Buffer.from(stored, 'hex'))) fail(401, 'E-mail ou senha incorretos.');
+        const upgraded = legacy ? await derivePassword(data.password, res) : null;
+        const id = existing.id;
+        const sessionCookie = accountTransaction(db, () => {
+          // A reset may finish while scrypt is running. Never issue a session for the old credential.
+          if (!db.prepare('SELECT 1 FROM users WHERE id=? AND password_hash=? AND salt=?').get(id, existing.password_hash, existing.salt)
+            || (adminLogin && !db.prepare('SELECT 1 FROM administrators WHERE user_id=?').get(id))) fail(401, 'E-mail ou senha incorretos.');
+          requireActive(id);
+          db.prepare('DELETE FROM auth_attempts WHERE key=?').run(hash(`login:${email}`));
+          if (pendingEmail(id) && !adminLogin) return null;
+          if (upgraded) db.prepare('UPDATE users SET password_hash=?,salt=? WHERE id=?').run(upgraded.passwordHash, upgraded.salt, id);
+          return adminLogin ? startAdminSession(id) : startSession(id);
+        });
+        if (!sessionCookie) {
+          send(202, { user: null, verificationRequired: true }); return true;
+        }
+        send(200, adminLogin ? { admin: { id, name: existing.name } } : { user: profile(id) }, { 'Set-Cookie': sessionCookie });
+        return true;
       }
       if (!userId) fail(401, 'Entre na sua conta para continuar.');
       requireActive(userId);

@@ -1,0 +1,120 @@
+import assert from 'node:assert/strict';
+import { createRequire } from 'node:module';
+import { openCatalog } from '../../backend/src/catalog/catalog.js';
+import { createApp } from '../../backend/src/server.js';
+import { testMailbox } from '../../backend/test-support/accountEmail.js';
+import { createServer } from '../../frontend/node_modules/vite/dist/node/index.js';
+
+const { chromium } = createRequire(import.meta.url)(process.env.PLAYWRIGHT_MODULE || 'playwright');
+const db = openCatalog(':memory:');
+const { promise: resetDelivered, resolve: markResetDelivered } = Promise.withResolvers();
+let mailbox;
+const api = createApp(db, false, async (message) => {
+  const sent = await mailbox.deliver(message);
+  if (message.purpose === 'reset') markResetDelivered();
+  return sent;
+});
+await new Promise((resolve) => api.listen(0, '127.0.0.1', resolve));
+const vite = await createServer({ root: 'frontend', server: { host: '127.0.0.1', port: 0,
+  proxy: { '/api': `http://127.0.0.1:${api.address().port}` } } });
+let browser;
+try {
+  await vite.listen();
+  const site = vite.resolvedUrls.local[0];
+  mailbox = testMailbox(site);
+  browser = await chromium.launch({ channel: 'msedge', headless: true });
+  const desktop = await browser.newPage({ viewport: { width: 1366, height: 900 } });
+  const mobile = await browser.newPage({ viewport: { width: 320, height: 800 }, reducedMotion: 'reduce' });
+  for (const page of [desktop, mobile]) {
+    await page.addInitScript(() => localStorage.setItem('buscagames:cookie-choice', 'rejected'));
+  }
+  const email = 'jogador@example.com';
+  const password = 'Cometas!53-Luas';
+  const nextPassword = 'Galáxias!87-Névoa';
+  await desktop.goto(site);
+  await desktop.getByRole('button', { name: 'Entrar', exact: true }).click();
+  const signup = desktop.getByRole('dialog');
+  await signup.getByRole('button', { name: 'Criar uma conta' }).click();
+  await signup.getByLabel('Nome de exibição').fill('Jogador Lunar');
+  await signup.getByLabel('E-mail', { exact: true }).fill(email);
+  await signup.getByLabel('Senha', { exact: true }).fill(password);
+  await signup.getByLabel('Confirmar senha').fill(password);
+  await signup.getByRole('button', { name: 'Criar conta' }).click();
+  await desktop.getByRole('heading', { name: 'Confirme seu e-mail' }).waitFor();
+  await desktop.getByRole('status').getByText('Enviamos um link', { exact: false }).waitFor();
+  assert.equal((await (await desktop.request.get(site + 'api/auth/me')).json()).user, null);
+
+  await desktop.goto(mailbox.messages[0].link.href);
+  await desktop.waitForURL(site + 'verificar-email');
+  const verify = desktop.getByRole('button', { name: 'Verificar meu e-mail' });
+  await verify.focus();
+  await desktop.keyboard.press('Enter');
+  await desktop.getByRole('heading', { name: 'E-mail verificado' }).waitFor();
+  assert.equal(await desktop.locator('h1').evaluate((element) => element === document.activeElement), true);
+  await desktop.locator('main').getByRole('button', { name: 'Entrar' }).click();
+  const login = desktop.getByRole('dialog');
+  await login.getByLabel('E-mail', { exact: true }).fill(email);
+  await login.getByLabel('Senha', { exact: true }).fill(password);
+  await login.getByRole('button', { name: 'Entrar', exact: true }).click();
+  await login.waitFor({ state: 'hidden' });
+  assert.equal((await (await desktop.request.get(site + 'api/auth/me')).json()).user.emailVerified, true);
+
+  await mobile.goto(site);
+  await mobile.getByRole('button', { name: 'Entrar', exact: true }).click();
+  await mobile.getByRole('link', { name: 'Esqueceu sua senha?' }).click();
+  await mobile.getByRole('heading', { name: 'Recupere sua senha' }).waitFor();
+  assert.ok(await mobile.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth));
+  const requestLink = mobile.getByRole('button', { name: 'Enviar link de recuperação' });
+  await requestLink.click();
+  await mobile.getByRole('alert').getByText('Informe um e-mail válido.').waitFor();
+  const emailInput = mobile.getByRole('textbox', { name: 'E-mail' });
+  assert.equal(await emailInput.evaluate((element) => element === document.activeElement), true);
+  await emailInput.fill(email);
+  const endpoint = '**/api/auth/forgot-password';
+  await mobile.route(endpoint, (route) => route.abort(), { times: 1 });
+  await requestLink.click();
+  await mobile.getByRole('alert').getByText('Falha de comunicação.', { exact: false }).waitFor();
+  const { promise: release, resolve: releaseRequest } = Promise.withResolvers();
+  await mobile.route(endpoint, async (route) => { await release; await route.continue(); }, { times: 1 });
+  await requestLink.click();
+  assert.ok(await mobile.getByRole('button', { name: 'Aguarde…' }).isDisabled());
+  releaseRequest();
+  await mobile.getByRole('status').getByText('Se houver uma conta elegível', { exact: false }).waitFor();
+  await resetDelivered;
+
+  const resetLink = mailbox.messages.at(-1).link.href;
+  await mobile.goto(resetLink);
+  await mobile.waitForURL(site + 'redefinir-senha');
+  const newInput = mobile.getByLabel('Nova senha', { exact: true });
+  await newInput.fill(nextPassword);
+  await mobile.getByRole('button', { name: 'Mostrar nova senha' }).click();
+  assert.equal(await newInput.getAttribute('type'), 'text');
+  await mobile.getByRole('button', { name: 'Ocultar nova senha' }).click();
+  await mobile.getByLabel('Confirmar senha').fill('diferente');
+  await mobile.getByRole('button', { name: 'Salvar nova senha' }).click();
+  await mobile.getByRole('alert').getByText('As senhas devem ser iguais.', { exact: false }).waitFor();
+  await mobile.getByLabel('Confirmar senha').fill(nextPassword);
+  await mobile.getByRole('button', { name: 'Salvar nova senha' }).click();
+  await mobile.getByRole('heading', { name: 'Senha redefinida' }).waitFor();
+  assert.equal((await (await desktop.request.get(site + 'api/auth/me')).json()).user, null);
+  await mobile.goto(resetLink);
+  await mobile.waitForURL(site + 'redefinir-senha');
+  await mobile.getByLabel('Nova senha', { exact: true }).fill(nextPassword);
+  await mobile.getByLabel('Confirmar senha').fill(nextPassword);
+  await mobile.getByRole('button', { name: 'Salvar nova senha' }).click();
+  await mobile.getByRole('heading', { name: 'Link indisponível' }).waitFor();
+  await mobile.getByRole('link', { name: 'Solicitar outro link de recuperação' }).waitFor();
+  await mobile.getByRole('button', { name: 'Voltar para o login' }).click();
+  const mobileLogin = mobile.getByRole('dialog');
+  await mobileLogin.getByLabel('E-mail', { exact: true }).fill(email);
+  await mobileLogin.getByLabel('Senha', { exact: true }).fill(nextPassword);
+  await mobileLogin.getByRole('button', { name: 'Entrar', exact: true }).click();
+  await mobileLogin.waitFor({ state: 'hidden' });
+  assert.equal((await (await mobile.request.get(site + 'api/auth/me')).json()).user.email, email);
+  console.log('Cadastro, verificação por teclado, login, recuperação, revogação e reuso verificados em desktop e 320 px.');
+} finally {
+  await browser?.close();
+  await vite.close();
+  await new Promise((resolve) => api.close(resolve));
+  db.close();
+}

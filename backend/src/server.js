@@ -10,11 +10,11 @@ import { enqueuePrice, startPrices } from './catalog/prices.js';
 import { communityHandler } from './community/community.js';
 import { startNotificationEmails } from './community/notifications.js';
 
-export function createApp(db, configured = false) {
-  // Bounded response cache; all external traffic is confined to the background worker.
+export function createApp(db, configured = false, accountEmail) {
+  // Catalog traffic is served from SQLite and a bounded response cache.
   const cache = new Map();
   let priceRevision = 0;
-  const handleCommunity = communityHandler(db);
+  const handleCommunity = communityHandler(db, accountEmail);
   return createServer(async (req, res) => {
     try {
       const url = new URL(req.url, 'http://localhost');

@@ -140,7 +140,8 @@ SQLite. Não é necessário rodar uma migração separada.
 - Cadastro/login: `POST /api/auth/register` (`name`, `email`, `password`, `passwordConfirmation`) e
   `POST /api/auth/login` (`email`, `password`). As regras de cadastro estão em
   `shared/accountPolicy.mjs`, utilizadas pelo formulário e novamente pela API.
-  Não há verificação de e-mail nem recuperação de senha nesta versão.
+  Novos cadastros recebem um link de confirmação e ficam pendentes, sem sessão
+  de usuário ou administrativa. Após confirmar, entre com e-mail e senha.
 - O nickname (`name`) é protegido por triggers SQLite, inclusive em escritas simultâneas
   e atualizações diretas. Administradores podem atualizar para nomes já usados.
   A comparação usa Unicode NFKC, ignora maiúsculas/minúsculas
@@ -180,7 +181,64 @@ SQLite. Não é necessário rodar uma migração separada.
   Notas locais de visitante são preservadas separadamente; não são atribuídas
   automaticamente a uma conta em dispositivo compartilhado.
 
+### Confirmação de e-mail e recuperação de senha
+
+Configure o Resend antes de habilitar novos cadastros por senha. Adicione e
+verifique um domínio no Resend com os registros DNS indicados pelo painel.
+Use um remetente desse domínio, uma chave com permissão de envio e desative
+o rastreamento de cliques e aberturas para o domínio de envio.
+
+```dotenv
+RESEND_API_KEY=
+AUTH_EMAIL_FROM=BuscaGames <conta@seu-dominio.com>
+PUBLIC_SITE_URL=https://busca-games.vercel.app
+SESSION_COOKIE_SECURE=true
+```
+
+Configure no ambiente da API ou no `.env` usado pelo Compose e reinicie/recrie
+o serviço. Use a origem pública do **frontend** em `PUBLIC_SITE_URL`.
+Para Vite local, use `http://localhost:5173`; para Compose HTTP local, use
+`http://localhost:8080` com a configuração local `SESSION_COOKIE_SECURE=false`.
+Com um endereço acessível por celular, use a origem HTTPS que o telefone abre.
+Credenciais ficam no backend. As notificações podem compartilhar a chave do
+Resend e têm seu próprio remetente, `NOTIFICATIONS_EMAIL_FROM`.
+Sem a configuração de autenticação, cadastro por senha, reenvio e solicitação
+de recuperação respondem 503. Login existente e Google continuam disponíveis.
+
+| API (POST JSON) | Corpo | Resultado |
+| --- | --- | --- |
+| `/api/auth/verify-email` | `{token}` | Confirma a conta sem criar sessão |
+| `/api/auth/resend-verification` | `{email}` | Resposta genérica 202 |
+| `/api/auth/forgot-password` | `{email}` | Resposta genérica 202, seguida de envio para contas elegíveis |
+| `/api/auth/reset-password` | `{token, password, passwordConfirmation}` | Troca a senha e revoga todas as sessões comuns e administrativas da conta |
+
+Os links usam tokens aleatórios de 256 bits, válidos por 15 minutos e
+armazenados apenas como SHA-256. O fragmento do URL fica fora das requisições
+HTTP. A página remove o fragmento da barra de endereço e envia o token
+via POST somente com ação explícita. A API rejeita tokens inválidos, expirados,
+reutilizados ou de finalidade diferente. Uma operação concluída invalida
+os links restantes da mesma finalidade.
+
+Em 15 minutos, as novas operações aceitam até 30 solicitações por IP e
+cinco solicitações por endereço em cada rota de envio. Cada conta recebe
+até três links válidos por finalidade, com intervalo de um minuto entre envios.
+Falhas do Resend aparecem em logs sem dados da conta. O cadastro informa se
+o Resend aceitou o envio. A solicitação de recuperação oferece uma resposta
+uniforme mesmo quando o provedor falha. O usuário pode solicitar um novo link.
+
+A abertura do SQLite cria `account_emails` e `account_email_tokens` com índices,
+preservando contas, sessões e relações existentes. Contas anteriores continuam
+usando a senha atual e podem comprovar o e-mail pelo próprio perfil antes de
+usar a recuperação. Contas apenas Google continuam usando o provedor, sem
+receber senha local. Um vínculo Google validado comprova o endereço cadastrado
+quando o endereço retornado pelo provedor é igual ao endereço da conta.
+
 Verificação: `npm --prefix backend test` e `npm --prefix frontend test`.
+Teste recebimento e abertura de ambos os links em uma caixa de entrada real
+depois de configurar a API e o remetente.
+[API de envio](https://resend.com/docs/api-reference/emails/send-email)
+· [Domínios e DNS](https://resend.com/docs/dashboard/domains/introduction)
+· [Rastreamento no Resend](https://resend.com/blog/open-and-click-tracking).
 
 ## Login com Google e favoritos da conta
 
@@ -267,15 +325,13 @@ Verificação específica: `node --test test/auth.test.js` no diretório backend
   cabeçalho de requisição obrigatório, rejeição de Sec-Fetch-Site: cross-site,
   consultas parametrizadas, restrição UNIQUE de e-mail e respostas sem cache.
   Login inválido usa a mesma mensagem para conta inexistente ou senha incorreta.
-  O cadastro imediato ainda distingue e-mail indisponível pelo status 409; eliminar
-  essa enumeração exige um fluxo de ativação por e-mail com resposta uniforme.
+  O cadastro distingue e-mail indisponível pelo status 409. A solicitação de
+  recuperação usa o mesmo status e corpo para contas elegíveis e inelegíveis.
 - Cookies Secure são padrão quando NODE_ENV=production, exceto com opt-out
   SESSION_COOKIE_SECURE=false para HTTP local. O Compose local faz esse opt-out:
   em implantação pública, configure HTTPS e SESSION_COOKIE_SECURE=true.
-- Sem serviço de envio, o cadastro por senha permanece ativo sem comprovação
-  de propriedade do e-mail, conforme decisão atual. Não marcar esse e-mail como
-  verificado nem usá-lo para recuperação automática. O fluxo Google exige
-  email_verified=true e não vincula contas automaticamente por coincidência de e-mail.
+- O fluxo Google exige `email_verified=true` e vínculo explícito para contas
+  existentes. Novas contas por senha precisam confirmar seu endereço.
 
 Referências: [OWASP Authentication](https://cheatsheetseries.owasp.org/cheatsheets/Authentication_Cheat_Sheet.html)
 e [OWASP Password Storage](https://cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Cheat_Sheet.html).

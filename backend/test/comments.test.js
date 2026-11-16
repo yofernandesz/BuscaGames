@@ -5,13 +5,15 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { openCatalog, upsertGames } from '../src/catalog/catalog.js';
 import { createApp } from '../src/server.js';
+import { activateTestAccount, testMailbox } from '../test-support/accountEmail.js';
 
 test('comments: authentication, ownership, validation, ratings, pagination, counts and restart persistence', async () => {
   const dir = mkdtempSync(join(tmpdir(), 'buscagames-comments-'));
   const path = join(dir, 'catalog.sqlite');
   let db = openCatalog(path);
   upsertGames(db, [{ id: 1, name: 'Jogo original' }, { id: 2, name: 'Outro jogo' }]);
-  let app = createApp(db);
+  const mailbox = testMailbox();
+  let app = createApp(db, false, mailbox.deliver);
   async function start() { await new Promise((resolve) => app.listen(0, '127.0.0.1', resolve)); }
   async function stop() { await new Promise((resolve) => app.close(resolve)); db.close(); }
   await start();
@@ -27,8 +29,8 @@ test('comments: authentication, ownership, validation, ratings, pagination, coun
   try {
     assert.equal((await request(endpoint, 'POST', { body: 'Olá' })).status, 401);
     assert.equal((await request('/api/auth/register', 'POST', credentials, '', { 'X-BuscaGames-Request': '' })).status, 403);
-    const registered = await request('/api/auth/register', 'POST', credentials);
-    assert.equal(registered.status, 201);
+    assert.equal((await request('/api/auth/register', 'POST', credentials)).status, 201);
+    const registered = await activateTestAccount(request, mailbox, credentials);
     assert.equal(registered.data.user.commentCount, 0);
     const cookie = registered.cookie;
     await request('/api/games/igdb-1/favorite', 'PUT', { favorite: true }, cookie);
@@ -47,7 +49,9 @@ test('comments: authentication, ownership, validation, ratings, pagination, coun
     const id = listing.own.id;
     assert.equal((await request('/api/games/igdb-1/rating', 'PUT', { rating: 5 }, cookie)).status, 200);
     assert.equal((await request(endpoint)).data.comments[0].rating, 5);
-    const other = await request('/api/auth/register', 'POST', { ...credentials, name: 'Bruno', email: 'bruno@example.com' });
+    const secondAccount = { ...credentials, name: 'Bruno', email: 'bruno@example.com' };
+    assert.equal((await request('/api/auth/register', 'POST', secondAccount)).status, 201);
+    const other = await activateTestAccount(request, mailbox, secondAccount);
     const replies = `/api/comments/${id}/replies`;
     assert.equal((await request(replies, 'POST', { body: 'Olá' })).status, 401);
     for (const body of ['', '  ', 'a'.repeat(36), null, 42, 'a\0b']) {

@@ -1,12 +1,16 @@
 import assert from 'node:assert/strict';
 import { createRequire } from 'node:module';
+import { join } from 'node:path';
 import { openCatalog } from '../../backend/src/catalog/catalog.js';
 import { createApp } from '../../backend/src/server.js';
+import { activateTestAccount, testMailbox } from '../../backend/test-support/accountEmail.js';
 import { createServer } from '../../frontend/node_modules/vite/dist/node/index.js';
 
 const { chromium } = createRequire(import.meta.url)(process.env.PLAYWRIGHT_MODULE || 'playwright');
+const captures = process.env.E2E_CAPTURE_DIR || 'evidencias/capturas';
 const db = openCatalog(':memory:');
-const api = createApp(db);
+const mailbox = testMailbox();
+const api = createApp(db, false, mailbox.deliver);
 await new Promise(resolve => api.listen(0, '127.0.0.1', resolve));
 const target = 'http://127.0.0.1:' + api.address().port;
 const vite = await createServer({ root: 'frontend', server: { host: '127.0.0.1', port: 0, proxy: { '/api': target } } });
@@ -17,6 +21,9 @@ try {
   const password = 'Orbitas!47-Luas';
   const registered = await fetch(target + '/api/auth/register', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-BuscaGames-Request': '1' }, body: JSON.stringify({ name: 'Equipe BuscaGames', email, password, passwordConfirmation: password }) });
   assert.equal(registered.status, 201);
+  await activateTestAccount((path, method, body) => fetch(target + path, { method,
+    headers: { 'Content-Type': 'application/json', 'X-BuscaGames-Request': '1' }, body: JSON.stringify(body),
+  }), mailbox, { email, password });
   browser = await chromium.launch({ channel: 'msedge', headless: true });
   const page = await browser.newPage({ viewport: { width: 1440, height: 960 } });
   await page.addInitScript(() => localStorage.setItem('buscagames:cookie-choice', 'rejected'));
@@ -39,12 +46,16 @@ try {
   await page.setViewportSize({ width: 1440, height: 1000 });
   await page.getByRole('button', { name: '7 dias' }).click();
   await page.getByRole('button', { name: 'Revisão', exact: true }).click();
-  await page.screenshot({ path: 'evidencias/capturas/admin-desktop.png' });
+  await page.screenshot({ path: join(captures, 'admin-desktop.png') });
   const player = await page.request.post(target + '/api/auth/register', {
     headers: { 'X-BuscaGames-Request': '1' },
     data: { name: 'Jogador Beta', email: 'beta@example.org', password, passwordConfirmation: password },
   });
   assert.equal(player.status(), 201);
+  await activateTestAccount(async (path, method, data) => {
+    const response = await page.request.fetch(target + path, { method, headers: { 'X-BuscaGames-Request': '1' }, data });
+    return { status: response.status() };
+  }, mailbox, { email: 'beta@example.org', password });
   const photo = 'iVBORw0KGgoAAAANSUhEUgAAAIAAAACACAAAAADmVT4XAAAAJklEQVR4nO3BAQEAAACCIP+vbkhAAQAAAAAAAAAAAAAAAAAAAO8GQIAAAfnHrWYAAAAASUVORK5CYII=';
   const uploaded = await page.request.put(target + '/api/auth/avatar', {
     headers: { 'X-BuscaGames-Request': '1' }, data: { photo },
@@ -81,7 +92,7 @@ try {
   await page.setViewportSize({ width: 320, height: 800 });
   await page.getByRole('button', { name: 'Recolher menu' }).click();
   assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth));
-  await page.screenshot({ path: 'evidencias/capturas/admin-mobile.png' });
+  await page.screenshot({ path: join(captures, 'admin-mobile.png') });
   await page.getByRole('button', { name: 'Sair do painel' }).click();
   await page.getByRole('heading', { name: 'Acesso administrativo' }).waitFor();
   console.log('Login, acesso negado, painel, chat, menu móvel e logout verificados.');

@@ -3,6 +3,7 @@ import { Link, Navigate, Route, Routes } from "react-router-dom";
 import Privacidade from "../pages/Privacidade";
 import Admin from "../features/admin/pages/Admin";
 import Perfil from "../features/account/pages/Perfil";
+import AccountEmail from "../features/account/pages/AccountEmail";
 import Comunidade, { PerfilPublico } from "../features/community/pages/Comunidade";
 import Footer from "../components/layout/Footer";
 import { GamesProvider } from "../features/games/context/GamesProvider";
@@ -89,6 +90,10 @@ function AppContent() {
           <Route path="/notificacoes" element={<Notificacoes />} />
           <Route path="/admin/:section?" element={<Admin />} />
           <Route path="/perfil" element={<Perfil onCookieSettings={reviewCookies} />} />
+          <Route path="/confirmacao-pendente" element={<AccountEmail key="pending" mode="pending" />} />
+          <Route path="/verificar-email" element={<AccountEmail key="verify" mode="verify" />} />
+          <Route path="/recuperar-senha" element={<AccountEmail key="forgot" mode="forgot" />} />
+          <Route path="/redefinir-senha" element={<AccountEmail key="reset" mode="reset" />} />
           <Route path="/perfil/:id" element={<PerfilPublico />} />
           <Route path="/comunidade" element={<Comunidade />} />
           <Route path="/privacidade" element={<Privacidade onCookieSettings={reviewCookies} />} />

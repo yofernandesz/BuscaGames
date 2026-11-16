@@ -99,7 +99,8 @@ A limitação de login por IP também deve ser verificada na topologia escolhida
 - Build e lint do frontend passam.
 - `/perfil` e `/jogo/ID` abrem diretamente e após recarregar.
 - `/api/health` retorna JSON com `ok: true` pelo domínio da Vercel.
-- Cadastro, login, logout, favoritos e cookies seguros funcionam em HTTPS.
+- Cadastro, confirmação por e-mail, recuperação de senha, login, logout,
+  favoritos e cookies seguros funcionam em HTTPS.
 - Google retorna ao domínio público correto, se configurado.
 - Dados persistem após reiniciar e republicar o backend.
 - Sincronização funciona sem uma aba do site aberta.
@@ -120,6 +121,15 @@ Email é opcional e depende de `RESEND_API_KEY`, `NOTIFICATIONS_EMAIL_FROM`
 e `PUBLIC_SITE_URL=https://busca-games.vercel.app` no backend. A ausência
 dessas variáveis não impede notificações no site. Consulte
 [a configuração de email](../backend/README.md#email-opcional).
+
+Para cadastro por senha e recuperação, configure também `AUTH_EMAIL_FROM`
+com um remetente em domínio verificado no Resend. Publique o frontend e a API
+com a mesma versão do fluxo. A API cria as tabelas ao abrir o volume existente.
+Confirme a entrega dos dois e-mails pelo domínio público, a abertura dos
+links em um celular e a revogação de sessões após a troca da senha.
+Planeje a reversão antes de aceitar novos cadastros. Uma versão anterior
+da API ignora o estado pendente dessas contas.
+[Configuração da autenticação por e-mail](../backend/README.md#confirmação-de-e-mail-e-recuperação-de-senha).
 
 ## Referências
 

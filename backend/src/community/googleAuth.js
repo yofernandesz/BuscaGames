@@ -1,5 +1,6 @@
 import { createHash, randomBytes } from 'node:crypto';
 import { availableNickname } from './nicknames.js';
+import { accountTransaction, markEmailVerified } from './accountEmail.js';
 
 const hash = (value) => createHash('sha256').update(value).digest('hex');
 const random = () => randomBytes(32).toString('base64url');
@@ -121,13 +122,17 @@ export function googleAuthHandler(db) {
       } else if (!id) {
         const email = identity.email.toLowerCase().trim();
         if (db.prepare('SELECT 1 FROM users WHERE email=?').get(email)) { outcome = 'google_existing'; throw new Error('Sign in before linking'); }
-        db.exec('BEGIN IMMEDIATE');
-        try {
+        accountTransaction(db, () => {
           id = Number(db.prepare('INSERT INTO users(name,email,password_hash,salt) VALUES (?,?,?,?)').run(
             availableNickname(db, identity.name), email, '', '').lastInsertRowid);
           db.prepare('INSERT INTO google_accounts VALUES (?,?)').run(identity.sub, id);
-          db.exec('COMMIT');
-        } catch (error) { db.exec('ROLLBACK'); throw error; }
+          markEmailVerified(db, id);
+        });
+      }
+      // A linked Google identity can verify only the address stored on this account.
+      if (db.prepare('SELECT email FROM users WHERE id=?').get(id)?.email === identity.email.trim().toLowerCase()) {
+        const verified = db.prepare('SELECT verified_at FROM account_emails WHERE user_id=?').get(id);
+        if (!verified?.verified_at) accountTransaction(db, () => markEmailVerified(db, id));
       }
       const googleUrl = profilePicture(identity, tokens.id_token);
       if (googleUrl) {

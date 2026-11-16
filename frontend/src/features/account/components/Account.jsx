@@ -1,11 +1,12 @@
 import Skeleton from "../../../components/ui/Skeleton";
 import ReviewBadge from "../../../components/ui/ReviewBadge";
 import NicknameEditor from './NicknameEditor';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useEffect, useId, useRef, useState } from 'react';
 import { useGames } from '../../games/hooks/useGames';
 import { communityApi } from '../../../lib/communityApi';
-import { PASSWORD_MIN, PASSWORD_MAX, LOGIN_PASSWORD_MAX, passwordRequirements, validateAccount } from '../../../../../shared/accountPolicy.mjs';
+import { PASSWORD_MIN, PASSWORD_MAX, LOGIN_PASSWORD_MAX, normalizeEmail, validateAccount } from '../../../../../shared/accountPolicy.mjs';
+import PasswordField, { PasswordRequirements } from './PasswordField';
 import '../../games/styles/comments.css';
 import '../styles/auth.css';
 
@@ -15,6 +16,7 @@ function GoogleMark() {
 
 export default function Account({ modal = false }) {
   const { user, updateUser, accountLoading, googleEnabled, closeLogin, loginRequest } = useGames();
+  const navigate = useNavigate();
   const id = useId();
   const inFlight = useRef(false);
   const focusAfterSubmit = useRef(null);
@@ -23,10 +25,7 @@ export default function Account({ modal = false }) {
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
   const [invalidField, setInvalidField] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmation, setShowConfirmation] = useState(false);
   const [draft, setDraft] = useState({ name: '', email: '', password: '', passwordConfirmation: '' });
-  const requirements = passwordRequirements(draft.password, draft);
 
   useEffect(() => {
     if (!busy && focusAfterSubmit.current) {
@@ -50,6 +49,11 @@ export default function Account({ modal = false }) {
     setBusy('email'); setError(''); setInvalidField(''); setMessage('');
     try {
       const data = await communityApi(`/api/auth/${user ? 'logout' : register ? 'register' : 'login'}`, { method: 'POST', body: fields });
+      if (data.verificationRequired) {
+        closeLogin();
+        navigate('/confirmacao-pendente', { state: { email: normalizeEmail(fields.email), emailSent: data.emailSent } });
+        return;
+      }
       updateUser(data.user); setMessage(user ? 'Você saiu da conta.' : 'Sessão iniciada.');
       setDraft({ name: '', email: '', password: '', passwordConfirmation: '' });
       if (!user) closeLogin();
@@ -85,6 +89,8 @@ export default function Account({ modal = false }) {
         <div><dt>Conta Google</dt><dd>{user.googleLinked ? 'Vinculada' : 'Não vinculada'}</dd></div>
       </dl>
       {!modal && <NicknameEditor key={user.id} />}
+      {user.emailVerified === false && <Link className="auth-link" to="/confirmacao-pendente" onClick={closeLogin}
+        state={{ email: user.email }}>Confirmar e-mail para recuperar a senha</Link>}
       {user.googleLinked && <p className="auth-connected">✓ Conta Google vinculada</p>}
       {!user.googleLinked && <>
         <button type="button" className="auth-google" disabled={Boolean(busy) || !googleEnabled} onClick={google}><GoogleMark />{busy === 'google' ? 'Conectando…' : 'Vincular conta Google'}</button>
@@ -97,23 +103,28 @@ export default function Account({ modal = false }) {
       <button type="button" className="auth-google" disabled={Boolean(busy) || !googleEnabled} onClick={google} aria-describedby={!googleEnabled ? `${id}-google-help` : undefined}><GoogleMark />{busy === 'google' ? 'Conectando…' : 'Continuar com Google'}</button>
       {!googleEnabled && <p id={`${id}-google-help`} className="auth-help">Google ainda indisponível. Use seu e-mail para continuar.</p>}
       <div className="auth-divider"><span>ou use seu e-mail</span></div>
-      <form noValidate onSubmit={submit} onChange={(event) => { const { name, value } = event.target; if (name) setDraft((previous) => ({ ...previous, [name]: value })); }} aria-busy={Boolean(busy)} aria-describedby={`${id}-error`}>
+      <form noValidate onSubmit={submit} onChange={(event) => { const { name, value } = event.target; if (name && name !== 'password') setDraft((previous) => ({ ...previous, [name]: value })); }} aria-busy={Boolean(busy)} aria-describedby={`${id}-error`}>
         {register && <label htmlFor={`${id}-name`}>Nome de exibição<input id={`${id}-name`} name="name" autoComplete="nickname" minLength={2} maxLength={60} required disabled={Boolean(busy)} aria-invalid={invalidField === 'name'} aria-describedby={`${id}-error`} placeholder="Como você quer ser chamado?" /></label>}
         <label htmlFor={`${id}-email`}>E-mail<input id={`${id}-email`} name="email" type="email" autoComplete="email" maxLength={254} required disabled={Boolean(busy)} aria-invalid={invalidField === 'email'} aria-describedby={`${id}-error`} placeholder="voce@exemplo.com" /></label>
-        <label htmlFor={`${id}-password`}>Senha</label>
-        <div className="auth-password"><input id={`${id}-password`} name="password" type={showPassword ? 'text' : 'password'} autoComplete={register ? 'new-password' : 'current-password'} minLength={register ? PASSWORD_MIN : 1} maxLength={(register ? PASSWORD_MAX : LOGIN_PASSWORD_MAX) * 2} required disabled={Boolean(busy)} aria-invalid={invalidField === 'password'} aria-describedby={`${id}-password-help ${register ? `${id}-requirements ` : ''}${id}-error`} placeholder="Sua senha" />
-          <button type="button" className="auth-show" aria-label={showPassword ? 'Ocultar senha' : 'Mostrar senha'} aria-pressed={showPassword} onClick={() => setShowPassword(!showPassword)}><svg aria-hidden="true" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.6"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z" /><circle cx="12" cy="12" r="3" />{showPassword && <path d="m3 3 18 18" />}</svg></button></div>
+        <PasswordField key={String(register)} label="Senha" id={`${id}-password`} name="password" value={draft.password}
+          onChange={(event) => {
+            const password = event.target.value;
+            setDraft((previous) => ({ ...previous, password }));
+          }}
+          autoComplete={register ? 'new-password' : 'current-password'} minLength={register ? PASSWORD_MIN : 1} maxLength={(register ? PASSWORD_MAX : LOGIN_PASSWORD_MAX) * 2}
+          disabled={Boolean(busy)} aria-invalid={invalidField === 'password'} aria-describedby={`${id}-password-help ${register ? `${id}-requirements ` : ''}${id}-error`} placeholder="Sua senha" />
         <p id={`${id}-password-help`} className="auth-help">{register ? 'Prefira uma frase longa e exclusiva. Espaços, acentos e colar senhas são permitidos.' : 'Use a senha da sua conta.'}</p>
+        {!register && <Link className="auth-link" to="/recuperar-senha" state={{ email: draft.email }} aria-disabled={Boolean(busy)}
+          onClick={(event) => { if (busy) event.preventDefault(); else closeLogin(); }}>Esqueceu sua senha?</Link>}
         {register && <>
-          <ul id={`${id}-requirements`} className="auth-requirements" aria-label="Critérios da senha">{requirements.map((rule) => <li key={rule.id} data-met={Boolean(draft.password) && rule.met}><span aria-hidden="true">{draft.password && rule.met ? '✓' : '○'}</span><span className="sr-only">{draft.password && rule.met ? 'Atendido: ' : 'Pendente: '}</span>{rule.label}</li>)}</ul>
-          <label htmlFor={`${id}-passwordConfirmation`}>Confirmar senha</label>
-          <div className="auth-password"><input id={`${id}-passwordConfirmation`} name="passwordConfirmation" type={showConfirmation ? 'text' : 'password'} autoComplete="new-password" maxLength={PASSWORD_MAX * 2} required disabled={Boolean(busy)} aria-invalid={invalidField === 'passwordConfirmation'} aria-describedby={`${id}-confirmation-help ${id}-error`} placeholder="Digite a senha novamente" />
-            <button type="button" className="auth-show" aria-label={showConfirmation ? 'Ocultar confirmação de senha' : 'Mostrar confirmação de senha'} aria-pressed={showConfirmation} onClick={() => setShowConfirmation(!showConfirmation)}><span aria-hidden="true">{showConfirmation ? '◉' : '◎'}</span></button></div>
+          <PasswordRequirements id={`${id}-requirements`} password={draft.password} identity={draft} />
+          <PasswordField label="Confirmar senha" visibilityLabel="confirmação de senha" id={`${id}-passwordConfirmation`} name="passwordConfirmation"
+            autoComplete="new-password" maxLength={PASSWORD_MAX * 2} disabled={Boolean(busy)} aria-invalid={invalidField === 'passwordConfirmation'} aria-describedby={`${id}-confirmation-help ${id}-error`} placeholder="Digite a senha novamente" />
           <p id={`${id}-confirmation-help`} className="auth-help" aria-live="polite">{draft.passwordConfirmation ? draft.password === draft.passwordConfirmation ? 'As senhas coincidem.' : 'As senhas ainda não coincidem.' : 'Repita a mesma senha para evitar erros de digitação.'}</p>
         </>}
         <p id={`${id}-error`} className="auth-error" role="alert">{errors}</p>
         <button className="auth-submit" disabled={Boolean(busy)}>{busy === 'email' ? 'Aguarde…' : register ? 'Criar conta' : 'Entrar'}<span aria-hidden="true">↗</span></button>
-        <p className="auth-switch">{register ? 'Já faz parte?' : 'Primeira vez aqui?'} <button type="button" disabled={Boolean(busy)} onClick={() => { setRegister(!register); setError(''); setInvalidField(''); setShowPassword(false); setShowConfirmation(false); setDraft((value) => ({ ...value, name: '', passwordConfirmation: '' })); }}>{register ? 'Entrar na minha conta' : 'Criar uma conta'}</button></p>
+        <p className="auth-switch">{register ? 'Já faz parte?' : 'Primeira vez aqui?'} <button type="button" disabled={Boolean(busy)} onClick={() => { setRegister(!register); setError(''); setInvalidField(''); setDraft((value) => ({ ...value, name: '', passwordConfirmation: '' })); }}>{register ? 'Entrar na minha conta' : 'Criar uma conta'}</button></p>
       </form>
       <p className="auth-privacy">Seu nome, foto, plano de fundo, favoritos, notas e conexões aparecem no perfil público. Seu e-mail não é público. <a href="/privacidade">Saiba como cuidamos dos seus dados.</a></p>
     </>}

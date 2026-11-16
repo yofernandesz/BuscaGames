@@ -106,6 +106,17 @@ de 7px já implementados; preços são conteúdo textual, sem caixa decorativa.
 
 ## Components
 
+### Confirmação de e-mail e recuperação de senha
+
+`Account.jsx` e `LoginDialog.jsx` são as entradas da conta. Cadastro pendente
+leva a uma página própria que permite solicitar outro link. `AccountEmail.jsx`
+usa o mesmo formulário e feedback em português para solicitar confirmação ou
+recuperação, exibir o resultado e encaminhar links expirados a uma nova solicitação.
+Os links são confirmados por ação explícita. Foco vai ao título da página ou ao
+campo inválido. `PasswordField.jsx` compartilha visibilidade e critérios da senha
+entre cadastro e redefinição. Botões, campos, contornos e cores vêm de auth.css e
+base.css. Políticas de senha vêm de `shared/accountPolicy.mjs`.
+
 ### Estrelas de avaliação
 
 `StarRating.jsx` é o dono das cinco reações no catálogo, detalhes e biblioteca.

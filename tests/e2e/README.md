@@ -10,6 +10,7 @@ somente na verificação e não é dependência da aplicação.
 
 | Comando | Cobertura |
 | --- | --- |
+| `node tests/e2e/account-email-browser.mjs` | Cadastro, verificação, recuperação, sessão, falhas e 320px |
 | `node tests/e2e/notifications-browser.cjs` | Contador, leitura, email, erros, teclado, visitante e 320px |
 | `node tests/e2e/skeleton-browser.cjs` | Skeletons em nove rotas, desktop/mobile, falhas e movimento reduzido |
 | `node tests/e2e/admin-browser.mjs` | Login e operações administrativas |

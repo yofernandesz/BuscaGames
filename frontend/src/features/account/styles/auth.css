@@ -20,7 +20,7 @@
 .auth-close:hover { background: var(--bg-2); color: var(--text-hi); }
 .auth-close:active { border-color: var(--neon-cyan); }
 .auth-form { display: grid; gap: .75rem; min-width: 0; }
-.auth-heading h2 { margin: .5rem 0 .65rem; font: 600 1.5rem/1.25 var(--font-display); letter-spacing: -.035em; }
+.auth-heading :is(h1, h2) { margin: .5rem 0 .65rem; font: 600 1.5rem/1.25 var(--font-display); letter-spacing: -.035em; }
 .auth-heading > p:last-child { color: var(--text-lo); font-size: .9rem; line-height: 1.45; margin-bottom: .45rem; }
 .auth-google { width: 100%; display: flex; justify-content: center; align-items: center; gap: .7rem; min-height: 48px; padding: .65rem 1rem; border: 1px solid #dadce0; border-radius: 8px; background: #fff; color: #1f1f1f; font: 600 .94rem var(--font-body); cursor: pointer; }
 .auth-google svg { flex: 0 0 20px; }
@@ -61,6 +61,11 @@
 .auth-privacy a:hover, .auth-privacy a:active { color: var(--text-hi); }
 .auth-explore { display: block; width: 100%; color: var(--text-lo); font-size: .8rem; text-align: center; margin-top: .7rem; border-top: 1px solid var(--line); padding-top: .9rem; }
 .auth-status:empty { display: none; }
+.auth-page { width: min(100% - 2rem, 32rem); margin: clamp(1.5rem, 7vw, 5rem) auto; }
+.auth-page-card { padding: clamp(1rem, 4vw, 2rem); border: 1px solid var(--line); border-radius: var(--radius); background: var(--bg-1); }
+.auth-page-actions { display: flex; flex-wrap: wrap; gap: .5rem 1.25rem; }
+.auth-link { display: inline-flex; width: fit-content; align-items: center; min-height: 44px; padding: .25rem 0; border: 0; background: transparent; color: var(--neon-cyan); font: inherit; font-weight: 600; text-decoration: underline; text-underline-offset: .2em; cursor: pointer; }
+.auth-link:hover { color: var(--text-hi); }
 .auth-connected { color: var(--neon-cyan); }
 .auth-loading { min-height: 12rem; display: grid; place-items: center; color: var(--text-lo); }
 .auth-dialog :focus-visible, .auth-form :focus-visible { outline: 2px solid var(--neon-cyan); outline-offset: 4px; }

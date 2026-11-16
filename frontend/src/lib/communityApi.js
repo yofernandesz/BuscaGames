@@ -18,6 +18,8 @@ export async function communityApi(path, { method = 'GET', body, signal } = {}) 
         : 'Resposta inválida do servidor. Tente novamente.';
     throw Object.assign(new Error(message), { status: response.status });
   }
-  if (!response.ok) throw Object.assign(new Error(data.error || 'Não foi possível concluir. Tente novamente.'), { status: response.status, field: data.field });
+  if (!response.ok) throw Object.assign(new Error(data.error || 'Não foi possível concluir. Tente novamente.'), {
+    status: response.status, field: data.field, retryAfter: Number(response.headers?.get('Retry-After')) || 0,
+  });
   return data;
 }
