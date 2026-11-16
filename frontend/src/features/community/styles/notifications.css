@@ -1,0 +1,21 @@
+.notification-button { gap: 7px; }
+.notification-button svg { width: 20px; height: 20px; flex-shrink: 0; }
+.notification-count { display: inline-flex; justify-content: center; align-items: center; min-width: 2.5em; height: 24px; padding: 0 5px; border-radius: 12px; color: var(--bg-0); background: var(--neon-cyan); font-variant-numeric: tabular-nums; }
+.notifications-page { max-width: 60rem; margin-inline: auto; }
+.notifications-page h1 { font: 600 clamp(1.5rem, 3vw, 2rem)/1.25 var(--font-display); margin-bottom: 12px; }
+.notifications-page h1:focus { outline: none; }
+.notifications-intro, .notification-list time { color: var(--text-lo); }
+.notifications-toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin-block: 24px; }
+.notification-preference { display: flex; align-items: center; gap: 12px; min-height: 44px; cursor: pointer; }
+.notification-preference input { width: 20px; height: 20px; accent-color: var(--neon-cyan); }
+.notification-list { list-style: none; padding: 0; margin-block: 24px; }
+.notification-list li { display: flex; justify-content: space-between; gap: 20px; padding: 20px; margin-bottom: 12px; background: var(--bg-1); border: 1px solid var(--bg-2); border-inline-start: 3px solid var(--bg-2); border-radius: var(--radius); overflow-wrap: anywhere; }
+.notification-list li.notification-unread { border-inline-start-color: var(--neon-cyan); }
+.notification-list p { margin: 0 0 10px; }
+.notification-list a { color: var(--neon-cyan); text-underline-offset: 4px; }
+.notification-state { display: block; margin-top: 6px; color: var(--text-lo); font-size: .85rem; }
+.notification-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; flex-shrink: 0; }
+.notification-actions a { display: inline-flex; align-items: center; min-height: 44px; }
+.notifications-page a:focus-visible, .notification-preference input:focus-visible { outline: 2px solid var(--neon-cyan); outline-offset: 4px; }
+.notifications-empty { padding: 24px; background: var(--bg-1); border-radius: var(--radius); }
+@media (max-width: 720px) { .notification-list li { flex-direction: column; gap: 12px; } }

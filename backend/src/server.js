@@ -8,6 +8,7 @@ import { startScheduler, synchronize } from './catalog/sync.js';
 import { enqueueLocalization, localizeGame, localizationHash, startLocalization } from './catalog/localization.js';
 import { enqueuePrice, startPrices } from './catalog/prices.js';
 import { communityHandler } from './community/community.js';
+import { startNotificationEmails } from './community/notifications.js';
 
 export function createApp(db, configured = false) {
   // Bounded response cache; all external traffic is confined to the background worker.
@@ -108,10 +109,11 @@ if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.ur
     }
     const stopLocalization = startLocalization(db);
     const stopPrices = startPrices(db);
+    const stopNotificationEmails = startNotificationEmails(db);
     if (!configured) console.warn('IGDB não configurada. Catálogo persistido continua disponível.');
     app.listen(Number(process.env.PORT || 3001), '0.0.0.0', () => console.info('API BuscaGames pronta'));
     for (const signal of ['SIGTERM', 'SIGINT']) process.on(signal, () => {
-      stop(); stopLocalization(); stopPrices(); app.close(() => process.exit(0));
+      stop(); stopLocalization(); stopPrices(); stopNotificationEmails(); app.close(() => process.exit(0));
       setTimeout(() => process.exit(0), 5000).unref();
     });
   }

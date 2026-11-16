@@ -1,0 +1,86 @@
+const assert = require('node:assert/strict');
+const { createHash } = require('node:crypto');
+const { mkdirSync, writeFileSync } = require('node:fs');
+const { chromium } = require(process.env.PLAYWRIGHT_MODULE || 'playwright');
+
+(async () => {
+  const { openCatalog, upsertGames } = await import('../../backend/src/catalog/catalog.js');
+  const { createApp } = await import('../../backend/src/server.js');
+  const { createServer } = await import('../../frontend/node_modules/vite/dist/node/index.js');
+  const db = openCatalog(':memory:');
+  for (const [id, name] of [[1, 'Lia Martins'], [2, 'Bruno']]) {
+    db.prepare('INSERT INTO users VALUES (?,?,?,?,?)').run(id, name, `player${id}@example.com`, '', '');
+  }
+  upsertGames(db, [{ id: 1, name: 'Hollow Knight' }]);
+  db.prepare("INSERT INTO comments(user_id,game_id,body,created_at) VALUES (1,1,'Uma aventura inesquecível.','2026-11-13T12:00:00Z')").run();
+  db.prepare('INSERT INTO user_follows VALUES (2,1)').run();
+  db.prepare('INSERT INTO comment_likes VALUES (2,1)').run();
+  db.prepare("INSERT INTO comment_replies(comment_id,user_id,body,created_at) VALUES (1,2,'Concordo!','2026-11-13T12:00:00Z')").run();
+  const token = 'd'.repeat(64);
+  db.prepare('INSERT INTO sessions VALUES (?,?,?)').run(createHash('sha256').update(token).digest('hex'), 1, Date.now() + 600000);
+  const api = createApp(db);
+  await new Promise(resolve => api.listen(0, '127.0.0.1', resolve));
+  const server = await createServer({ root: 'frontend', server: { host: '127.0.0.1', port: 0, proxy: { '/api': `http://127.0.0.1:${api.address().port}` } } });
+  await server.listen();
+  const origin = `http://127.0.0.1:${server.httpServer.address().port}`;
+  const browser = await chromium.launch({ channel: 'msedge', headless: true });
+  try {
+    mkdirSync('evidencias/capturas', { recursive: true });
+    mkdirSync('evidencias/resultados', { recursive: true });
+    const context = await browser.newContext({ viewport: { width: 1440, height: 1000 } });
+    await context.addCookies([{ name: 'bg_session', value: token, url: origin }]);
+    const page = await context.newPage();
+    const errors = [];
+    page.on('pageerror', error => errors.push(error.message));
+    await page.goto(`${origin}/notificacoes`);
+    await page.getByRole('link', { name: 'Notificações: 3 não lidas' }).waitFor();
+    await page.getByText('3 não lidas', { exact: true }).waitFor();
+    assert.equal(await page.locator('.notification-unread').count(), 3);
+    await page.screenshot({ path: 'evidencias/capturas/notifications-desktop.png', fullPage: true });
+    const mark = page.getByRole('button', { name: 'Marcar todas como lidas' });
+    await mark.focus();
+    assert.equal(await mark.evaluate(element => getComputedStyle(element).outlineStyle), 'solid');
+    await page.keyboard.press('Enter');
+    await page.getByRole('link', { name: 'Notificações: 0 não lidas' }).waitFor();
+    await page.reload();
+    await page.getByText('0 não lidas', { exact: true }).waitFor();
+    assert.equal(await page.locator('.notification-unread').count(), 0);
+    await page.getByRole('checkbox', { name: 'Receber alertas por email' }).click();
+    await page.getByText('Preferência de email salva.').waitFor();
+    assert.equal(await page.getByRole('checkbox', { name: 'Receber alertas por email' }).isChecked(), false);
+    assert.equal(db.prepare('SELECT email_enabled FROM notification_preferences WHERE user_id=1').get().email_enabled, 0);
+    await page.getByRole('link', { name: 'Ver conversa' }).first().click();
+    await page.getByRole('heading', { name: 'Seu comentário' }).waitFor();
+    await page.goBack();
+    await page.getByText('0 não lidas', { exact: true }).waitFor();
+    await page.setViewportSize({ width: 320, height: 760 });
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+    assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
+    await page.screenshot({ path: 'evidencias/capturas/notifications-mobile.png', fullPage: true });
+    await page.route('**/api/notifications', route => route.fulfill({ status: 503, contentType: 'application/json', body: JSON.stringify({ error: 'Notificações indisponíveis. Tente novamente.' }) }));
+    await page.getByRole('button', { name: 'Atualizar', exact: true }).click();
+    await page.getByRole('button', { name: 'Tentar novamente' }).waitFor();
+    await page.unroute('**/api/notifications');
+    let release;
+    const hold = new Promise(resolve => { release = resolve; });
+    await page.route('**/api/notifications', async route => { await hold; await route.continue(); });
+    await page.getByRole('button', { name: 'Tentar novamente' }).click();
+    await page.getByText('Carregando notificações…').waitFor();
+    release();
+    await page.getByText('0 não lidas', { exact: true }).waitFor();
+    await page.unroute('**/api/notifications');
+    db.prepare('DELETE FROM notifications').run();
+    await page.getByRole('button', { name: 'Atualizar', exact: true }).click();
+    await page.getByText(/Nenhuma notificação por aqui/).waitFor();
+    await context.clearCookies();
+    await page.reload();
+    await page.getByRole('button', { name: 'Entrar para ver notificações' }).waitFor();
+    assert.equal(await page.locator('.notification-list').count(), 0);
+    assert.deepEqual(errors, []);
+    writeFileSync('evidencias/resultados/notifications-browser.json', JSON.stringify({ ok: true, checks: ['desktop', '320px', 'keyboard', 'read persistence', 'email preference', 'conversation link', 'error recovery', 'loading', 'empty', 'visitor privacy'], errors }, null, 2));
+    console.log('Notifications browser checks passed.');
+  } finally {
+    await browser.close(); await server.close();
+    await new Promise(resolve => api.close(resolve)); db.close();
+  }
+})().catch(error => { console.error(error); process.exitCode = 1; });

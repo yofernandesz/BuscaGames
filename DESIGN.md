@@ -25,6 +25,22 @@ components:
 
 # BuscaGames
 
+### Notificações recebidas
+
+`NotificationButton.jsx` é o dono do sino e da contagem de não lidas no Header.
+A contagem é consultada ao entrar, ao retornar à janela e a cada 30 segundos
+com a página visível; leitura confirmada atualiza o sino. O selo reserva largura,
+mostra 99+ visualmente e anuncia a contagem completa no nome acessível. Falha de
+consulta mostra ! e descrição de contagem indisponível, sem inventar zero.
+`Notificacoes.jsx` reúne seguidores, curtidas e respostas recebidas de outras
+contas, em páginas de 20. Abrir a página ou um destino não marca leitura:
+ações explícitas individuais e “Marcar todas como lidas” fazem isso após confirmação
+da API. Marcar todas preserva eventos posteriores à consulta. Preferência de email
+fica na mesma página. Skeleton rows, btn-ghost, tokens de base.css e links nativos
+preservam os padrões existentes; notifications.css organiza a lista responsiva.
+Fonte: backend/README.md, seção Notificações. Testes: notifications.test.js,
+Notificacoes.test.jsx e tests/e2e/notifications-browser.cjs.
+
 ## Overview
 
 Catálogo para descobrir jogos e consultar informações, em português do Brasil,

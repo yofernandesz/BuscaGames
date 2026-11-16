@@ -2,7 +2,11 @@
 
 ## Estado
 
-Preparação local; ainda não publicado. O backend atual usa SQLite local e
+Frontend publicado em https://busca-games.vercel.app/ e integrado ao repositório
+GitHub `yofernandesz/BuscaGames`. A API está publicada em
+`https://api-buscagames.duckdns.org`, com proxy `/api` configurado na Vercel.
+`https://busca-games.vercel.app/api/health` retorna `{"ok":true}`.
+O backend atual usa SQLite local e
 workers dentro do processo Node. A hospedagem deve preservar o arquivo do banco
 e permitir que o processo execute os trabalhos agendados.
 
@@ -45,8 +49,8 @@ docker compose -f compose.vm.yaml up -d --build --wait
 curl --fail http://127.0.0.1:3001/api/health
 ```
 
-Falta configurar o proxy HTTPS da VM e seu endereço público antes de conectar
-a Vercel. Não expor a porta 3001 diretamente. Configurar SSH restrito ao IP
+O endereço HTTPS atual da API é `api-buscagames.duckdns.org`.
+Não expor a porta 3001 diretamente. Configurar SSH restrito ao IP
 administrativo e liberar somente as portas públicas necessárias para HTTPS.
 O domínio/certificado e o tratamento do IP de origem serão definidos quando
 houver uma VM acessível. Os cookies Secure exigem HTTPS para uso no navegador.
@@ -99,6 +103,23 @@ A limitação de login por IP também deve ser verificada na topologia escolhida
 - Google retorna ao domínio público correto, se configurado.
 - Dados persistem após reiniciar e republicar o backend.
 - Sincronização funciona sem uma aba do site aberta.
+
+## Atualizações de código e notificações
+
+O push em `main` publica o frontend pela integração da Vercel. Os workflows
+do GitHub validam o código e publicam uma versão separada no GitHub Pages;
+eles não atualizam automaticamente a VM da API. Alterações em `backend/`
+precisam ser publicadas também na VM, preservando o banco e o ambiente.
+
+O recurso de notificações cria suas tabelas e triggers ao abrir o banco na
+nova versão da API. A rota `/api/notifications/count` deve retornar 401 JSON
+sem sessão, e contagem apenas para o usuário conectado. Um 404 indica que o
+backend ainda não recebeu a atualização.
+
+Email é opcional e depende de `RESEND_API_KEY`, `NOTIFICATIONS_EMAIL_FROM`
+e `PUBLIC_SITE_URL=https://busca-games.vercel.app` no backend. A ausência
+dessas variáveis não impede notificações no site. Consulte
+[a configuração de email](../backend/README.md#email-opcional).
 
 ## Referências
 

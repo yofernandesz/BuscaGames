@@ -9,6 +9,7 @@ lerna-debug.log*
 
 node_modules/
 .vercel/
+.deploy/
 dist/
 .env
 .env.local

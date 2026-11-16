@@ -356,3 +356,49 @@ são públicos; e-mail, credenciais e sessão não fazem parte dessa projeção.
 
 GET /api/comments/ID/replies?after=CURSOR lista até 20 respostas em ordem de publicação, com replies, nextCursor e ownCount da sessão. POST no mesmo caminho recebe {body} e retorna {reply, ownCount}. Exige conta ativa; texto não vazio de até 35 pontos de código Unicode; até duas respostas por usuário e comentário (409 ao exceder, protegido por trigger SQLite). Respostas não recebem outras respostas e não alteram o contador de opiniões sobre jogos. A exclusão do comentário remove as respostas em cascata.
 
+## Notificações
+
+Novas ações de seguir, curtir um comentário e responder a um comentário geram
+notificações para o destinatário/autor, na mesma transação SQLite da interação.
+Ações na própria conta não notificam. Repetir PUT com o mesmo estado não duplica;
+desfazer não gera aviso, mas uma nova interação após desfazer gera outro evento.
+Não há importação retroativa das interações anteriores à instalação. Excluir um
+comentário remove seus avisos de curtida/resposta. Histórico persiste entre sessões.
+
+- `GET /api/notifications/count`: quantidade de não lidas da sessão.
+- `GET /api/notifications?before=<id>`: 20 avisos, cursor, contagem, último ID e preferência.
+- `PUT /api/notifications/read`: `{id}` marca um aviso; `{throughId}` marca até
+  o ID consultado, preservando novas notificações recebidas durante a leitura.
+- `PUT /api/notifications/preferences`: `{emailEnabled: true|false}`.
+
+Todas as rotas exigem sessão ativa; escritas usam a proteção de origem existente.
+IDs enviados pelo cliente nunca permitem ler ou alterar avisos de outra conta.
+Somente ações explícitas marcam leitura; abrir um link preserva a notificação.
+
+### Email opcional
+
+Configure no ambiente do backend e reinicie o servidor. No Docker Compose,
+adicione as variáveis ao `.env` da raiz e recrie o serviço `api`:
+
+```dotenv
+RESEND_API_KEY=re_sua_chave
+NOTIFICATIONS_EMAIL_FROM=BuscaGames <notificacoes@seu-dominio.com>
+PUBLIC_SITE_URL=https://seu-site.com
+```
+
+O remetente precisa pertencer a um domínio verificado no Resend. A integração usa
+[a API oficial de envio](https://resend.com/docs/api-reference/emails/send-email)
+com texto simples e chave de idempotência, sem dependência nova. Nunca colocar a
+chave em variáveis VITE_. Sem configuração, as notificações no site funcionam e
+a tela informa que email ainda não está disponível.
+
+O processo `npm start` verifica a fila ao iniciar e a cada minuto, enviando até
+10 alertas por ciclo ao email cadastrado, com no máximo cinco tentativas por aviso.
+O payload persistido é idêntico em cada tentativa; eventos com mais de 23 horas
+são descartados da fila de email para respeitar a janela de idempotência do provedor.
+Não há garantia de entrega na caixa de entrada; falhas não desfazem a ação social.
+O usuário pode desativar email em `/notificacoes`; isso cancela pendências e não
+reenvia eventos do período desativado ao reativar. Uma requisição de envio já em
+andamento pode concluir. Contas bloqueadas não enviam/recebem esses emails.
+Ler no site não cancela um email pendente. O envio real depende das credenciais,
+domínio e disponibilidade do provedor; testes usam um transporte simulado.

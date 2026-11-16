@@ -32,6 +32,9 @@ services:
       GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
       GOOGLE_REDIRECT_URI: ${GOOGLE_REDIRECT_URI:-http://localhost:8080/api/auth/google/callback}
       GOOGLE_REDIRECT_URIS: ${GOOGLE_REDIRECT_URIS:-}
+      RESEND_API_KEY: ${RESEND_API_KEY:-}
+      NOTIFICATIONS_EMAIL_FROM: ${NOTIFICATIONS_EMAIL_FROM:-}
+      PUBLIC_SITE_URL: ${PUBLIC_SITE_URL:-}
     volumes:
       - catalog-data:/app/data
     restart: unless-stopped

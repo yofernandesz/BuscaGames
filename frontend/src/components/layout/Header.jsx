@@ -1,6 +1,7 @@
 import Logo from "./Logo";
 import { NavLink } from "react-router-dom";
 import { useGames } from '../../features/games/hooks/useGames';
+import NotificationButton from '../../features/community/components/NotificationButton';
 
 export default function Header({ children }) {
   const { user, requestLogin, accountLoading } = useGames();
@@ -13,6 +14,7 @@ export default function Header({ children }) {
           <NavLink to="/biblioteca">Minha biblioteca</NavLink>
           <NavLink to="/comunidade">Comunidade</NavLink>
           <NavLink to="/perfil">Perfil</NavLink>
+          {user && <NotificationButton key={user.id} />}
           {!user && <button className="header-login" type="button" disabled={accountLoading} onClick={() => requestLogin()}>Entrar <span aria-hidden="true">↗</span></button>}
         </nav>
         {children}

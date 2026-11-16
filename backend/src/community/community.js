@@ -7,6 +7,7 @@ import { normalizeEmail, validateAccount } from '../../../shared/accountPolicy.m
 import { initializeSocial, handleSocial } from './social.js';
 import { initializeNicknames, changeNickname, nicknameAvailability } from './nicknames.js';
 import { validateBackground } from './profileBackground.js';
+import { initializeNotifications, handleNotifications } from './notifications.js';
 
 const deriveKey = promisify(scrypt);
 const hash = (value) => createHash('sha256').update(value).digest('hex');
@@ -74,6 +75,7 @@ export function initializeCommunity(db) {
   initializeAdmin(db);
   initializeNicknames(db);
   initializeSocial(db);
+  initializeNotifications(db);
   if (!db.prepare('PRAGMA table_info(google_flows)').all().some(column => column.name === 'admin_login')) {
     db.exec('ALTER TABLE google_flows ADD COLUMN admin_login INTEGER NOT NULL DEFAULT 0');
   }
@@ -137,8 +139,9 @@ export function communityHandler(db) {
     const backgroundRoute = /^\/api\/backgrounds\/(\d+)\/[a-f0-9]{64}\.png$/.exec(url.pathname);
     const adminRoute = url.pathname.startsWith('/api/admin/');
     const adminLogin = url.pathname === '/api/admin/login';
+    const notificationRoute = url.pathname === '/api/notifications' || url.pathname.startsWith('/api/notifications/');
     const socialRoute = url.pathname === '/api/users' || url.pathname.startsWith('/api/users/') || /^\/api\/comments\/\d+\/like$/.test(url.pathname);
-    if (!socialRoute && !adminRoute && !photoRoute && !backgroundRoute && !url.pathname.startsWith('/api/auth/') && !gameRoute && !commentRoute && !replyRoute) return false;
+    if (!notificationRoute && !socialRoute && !adminRoute && !photoRoute && !backgroundRoute && !url.pathname.startsWith('/api/auth/') && !gameRoute && !commentRoute && !replyRoute) return false;
     const send = (status, data, headers = {}) => {
       res.writeHead(status, { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store', 'X-Content-Type-Options': 'nosniff', ...headers });
       res.end(JSON.stringify(data));
@@ -178,6 +181,10 @@ export function communityHandler(db) {
         }
         return data;
       };
+      if (notificationRoute) {
+        await handleNotifications(db, req, url, { userId, readBody, requireActive, fail, send });
+        return true;
+      }
       if (replyRoute) {
         const commentId = Number(replyRoute[1]);
         if (!db.prepare('SELECT 1 FROM comments WHERE id=?').get(commentId)) fail(404, 'Comentário não encontrado.');

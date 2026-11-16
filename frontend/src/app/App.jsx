@@ -11,6 +11,7 @@ import Catalogo from "../features/games/pages/Catalogo";
 import Detalhes from "../features/games/pages/Detalhes";
 import Biblioteca from "../features/games/pages/Biblioteca";
 import ScrollToTop from "./ScrollToTop";
+import Notificacoes from '../features/community/pages/Notificacoes';
 
 export default function App() {
   return <GamesProvider><AppContent /></GamesProvider>;
@@ -85,6 +86,7 @@ function AppContent() {
           </div>
         </section>}
         <Routes>
+          <Route path="/notificacoes" element={<Notificacoes />} />
           <Route path="/admin/:section?" element={<Admin />} />
           <Route path="/perfil" element={<Perfil onCookieSettings={reviewCookies} />} />
           <Route path="/perfil/:id" element={<PerfilPublico />} />
