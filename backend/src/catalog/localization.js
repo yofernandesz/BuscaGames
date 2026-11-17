@@ -142,7 +142,8 @@ export async function enrichGame(db, game, fetcher = fetch) {
 }
 
 export async function processLocalization(db, fetcher = fetch) {
-  const next = db.prepare(`SELECT g.data FROM games g LEFT JOIN localization_queue q ON q.game_id=g.id
+  // Rank IDs using the covering index; read the large JSON only for the selected game.
+  const next = db.prepare(`SELECT data FROM games WHERE id=(SELECT g.id FROM games g INDEXED BY games_rating_count LEFT JOIN localization_queue q ON q.game_id=g.id
     LEFT JOIN game_localization l ON l.game_id=g.id
     LEFT JOIN localization_attempts a ON a.game_id=g.id
     LEFT JOIN steam_popularity s ON s.game_id=g.id
@@ -150,7 +151,7 @@ export async function processLocalization(db, fetcher = fetch) {
       AND (q.requested IS NOT NULL OR l.game_id IS NULL OR julianday(l.checked_at) < julianday('now', '-30 days')
         OR (l.summary IS NULL AND julianday(l.checked_at) < julianday('now', '-1 day')))
     ORDER BY COALESCE(q.priority, 0) DESC, (q.game_id IS NOT NULL) DESC, q.requested ASC,
-      (g.id=52189) DESC, (s.game_id IS NOT NULL) DESC, s.value DESC, g.rating_count DESC, g.id ASC LIMIT 1`);
+      (g.id=52189) DESC, (s.game_id IS NOT NULL) DESC, s.value DESC, g.rating_count DESC, g.id ASC LIMIT 1)`);
   for (let count = 0; count < 10; count++) {
     // Recheck between jobs so a visit can take precedence over the remaining background work.
     const row = next.get();

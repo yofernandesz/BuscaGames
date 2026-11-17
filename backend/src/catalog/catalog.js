@@ -50,6 +50,7 @@ export function openCatalog(path) {
     CREATE INDEX IF NOT EXISTS games_rating ON games(rating DESC);
     CREATE INDEX IF NOT EXISTS games_rating_count ON games(rating_count DESC, id);
     CREATE INDEX IF NOT EXISTS games_release_recent ON games(released DESC, id);
+    CREATE INDEX IF NOT EXISTS games_search ON games(search);
     CREATE TABLE IF NOT EXISTS state (key TEXT PRIMARY KEY, value TEXT NOT NULL);
     CREATE TABLE IF NOT EXISTS popularity (
       game_id INTEGER NOT NULL, day TEXT NOT NULL, value REAL NOT NULL, calculated INTEGER NOT NULL,
@@ -71,8 +72,13 @@ export function openCatalog(path) {
   if (!db.prepare('PRAGMA table_info(localization_queue)').all().some((column) => column.name === 'priority')) {
     db.exec('ALTER TABLE localization_queue ADD COLUMN priority INTEGER NOT NULL DEFAULT 0');
   }
-  // Existing imports also need the localized genre in their search index.
-  db.prepare("UPDATE games SET search = search || ' combate corpo a corpo' WHERE search LIKE '%hack and slash/beat%' AND search NOT LIKE '%combate corpo a corpo%'").run();
+  // Run this legacy backfill once: a full catalog scan on every boot can stall the API on slow disks.
+  if (!db.prepare("SELECT 1 FROM state WHERE key='genreSearchBackfilled'").get()) {
+    transaction(db, () => {
+      db.prepare("UPDATE games SET search = search || ' combate corpo a corpo' WHERE search LIKE '%hack and slash/beat%' AND search NOT LIKE '%combate corpo a corpo%'").run();
+      db.prepare("INSERT INTO state VALUES ('genreSearchBackfilled', 'true')").run();
+    });
+  }
   initializeCommunity(db);
   return db;
 }

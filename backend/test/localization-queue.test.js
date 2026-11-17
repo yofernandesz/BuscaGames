@@ -8,6 +8,23 @@ import { openCatalog, upsertGames } from '../src/catalog/catalog.js';
 import { enqueueLocalization, localizationHash, processLocalization } from '../src/catalog/localization.js';
 import { createApp } from '../src/server.js';
 
+test('background selection scans the covering index instead of the catalog JSON', async () => {
+  const db = openCatalog(':memory:');
+  try {
+    let checked = false;
+    await processLocalization({ prepare(sql) {
+      if (sql.startsWith('SELECT data FROM games WHERE id=')) {
+        const plan = db.prepare(`EXPLAIN QUERY PLAN ${sql}`).all();
+        assert.ok(plan.some(({ detail }) => detail.includes('COVERING INDEX games_rating_count')));
+        assert.ok(plan.some(({ detail }) => detail.includes('SEARCH games USING INTEGER PRIMARY KEY')));
+        checked = true;
+      }
+      return db.prepare(sql);
+    } });
+    assert.ok(checked);
+  } finally { db.close(); }
+});
+
 test('upgrades existing queues without losing jobs and preserves priority after reopening', () => {
   const dir = mkdtempSync(join(tmpdir(), 'buscagames-queue-'));
   const path = join(dir, 'catalog.sqlite');

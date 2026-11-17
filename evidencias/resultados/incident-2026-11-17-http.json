@@ -1,0 +1,233 @@
+[
+  {
+    "at": "2026-11-17T22:23:46.271Z",
+    "path": "/api/health",
+    "status": 200,
+    "ms": 282
+  },
+  {
+    "at": "2026-11-17T22:23:46.813Z",
+    "path": "/api/home",
+    "status": 200,
+    "ms": 541,
+    "catalogStatus": {
+      "configured": true,
+      "lastSuccess": "2026-11-17T06:00:54.184Z",
+      "stale": false,
+      "syncing": false,
+      "degraded": false,
+      "importComplete": false,
+      "pendingUpdates": true
+    }
+  },
+  {
+    "at": "2026-11-17T22:23:46.966Z",
+    "path": "/api/notifications/count",
+    "status": 401,
+    "ms": 153
+  },
+  {
+    "at": "2026-11-17T22:23:55.828Z",
+    "path": "/api/games?q=zelda&limit=3",
+    "status": 200,
+    "ms": 8862
+  },
+  {
+    "at": "2026-11-17T22:24:11.029Z",
+    "path": "/api/health",
+    "status": 200,
+    "ms": 193
+  },
+  {
+    "at": "2026-11-17T22:24:11.439Z",
+    "path": "/api/home",
+    "status": 200,
+    "ms": 410,
+    "catalogStatus": {
+      "configured": true,
+      "lastSuccess": "2026-11-17T06:00:54.184Z",
+      "stale": false,
+      "syncing": false,
+      "degraded": false,
+      "importComplete": false,
+      "pendingUpdates": true
+    }
+  },
+  {
+    "at": "2026-11-17T22:24:11.730Z",
+    "path": "/api/notifications/count",
+    "status": 401,
+    "ms": 291
+  },
+  {
+    "at": "2026-11-17T22:24:11.909Z",
+    "path": "/api/games?q=zelda&limit=3",
+    "status": 200,
+    "ms": 179
+  },
+  {
+    "at": "2026-11-17T22:24:27.192Z",
+    "path": "/api/health",
+    "status": 200,
+    "ms": 270
+  },
+  {
+    "at": "2026-11-17T22:24:27.612Z",
+    "path": "/api/home",
+    "status": 200,
+    "ms": 420,
+    "catalogStatus": {
+      "configured": true,
+      "lastSuccess": "2026-11-17T06:00:54.184Z",
+      "stale": false,
+      "syncing": false,
+      "degraded": false,
+      "importComplete": false,
+      "pendingUpdates": true
+    }
+  },
+  {
+    "at": "2026-11-17T22:24:27.782Z",
+    "path": "/api/notifications/count",
+    "status": 401,
+    "ms": 170
+  },
+  {
+    "at": "2026-11-17T22:24:28.125Z",
+    "path": "/api/games?q=zelda&limit=3",
+    "status": 200,
+    "ms": 343
+  },
+  {
+    "at": "2026-11-17T22:24:43.346Z",
+    "path": "/api/health",
+    "status": 200,
+    "ms": 210
+  },
+  {
+    "at": "2026-11-17T22:24:50.370Z",
+    "path": "/api/home",
+    "status": 200,
+    "ms": 7024,
+    "catalogStatus": {
+      "configured": true,
+      "lastSuccess": "2026-11-17T06:00:54.184Z",
+      "stale": false,
+      "syncing": false,
+      "degraded": false,
+      "importComplete": false,
+      "pendingUpdates": true
+    }
+  },
+  {
+    "at": "2026-11-17T22:24:50.800Z",
+    "path": "/api/notifications/count",
+    "status": 401,
+    "ms": 429
+  },
+  {
+    "at": "2026-11-17T22:24:59.979Z",
+    "path": "/api/games?q=zelda&limit=3",
+    "status": 200,
+    "ms": 9180
+  },
+  {
+    "at": "2026-11-17T22:25:15.196Z",
+    "path": "/api/health",
+    "status": 200,
+    "ms": 204
+  },
+  {
+    "at": "2026-11-17T22:25:15.620Z",
+    "path": "/api/home",
+    "status": 200,
+    "ms": 424,
+    "catalogStatus": {
+      "configured": true,
+      "lastSuccess": "2026-11-17T06:00:54.184Z",
+      "stale": false,
+      "syncing": false,
+      "degraded": false,
+      "importComplete": false,
+      "pendingUpdates": true
+    }
+  },
+  {
+    "at": "2026-11-17T22:25:15.774Z",
+    "path": "/api/notifications/count",
+    "status": 401,
+    "ms": 154
+  },
+  {
+    "at": "2026-11-17T22:25:15.977Z",
+    "path": "/api/games?q=zelda&limit=3",
+    "status": 200,
+    "ms": 203
+  },
+  {
+    "at": "2026-11-17T22:25:31.171Z",
+    "path": "/api/health",
+    "status": 200,
+    "ms": 192
+  },
+  {
+    "at": "2026-11-17T22:25:31.569Z",
+    "path": "/api/home",
+    "status": 200,
+    "ms": 398,
+    "catalogStatus": {
+      "configured": true,
+      "lastSuccess": "2026-11-17T06:00:54.184Z",
+      "stale": false,
+      "syncing": false,
+      "degraded": false,
+      "importComplete": false,
+      "pendingUpdates": true
+    }
+  },
+  {
+    "at": "2026-11-17T22:25:31.722Z",
+    "path": "/api/notifications/count",
+    "status": 401,
+    "ms": 153
+  },
+  {
+    "at": "2026-11-17T22:25:32.032Z",
+    "path": "/api/games?q=zelda&limit=3",
+    "status": 200,
+    "ms": 310
+  },
+  {
+    "at": "2026-11-17T22:25:47.242Z",
+    "path": "/api/health",
+    "status": 200,
+    "ms": 195
+  },
+  {
+    "at": "2026-11-17T22:25:54.065Z",
+    "path": "/api/home",
+    "status": 200,
+    "ms": 6823,
+    "catalogStatus": {
+      "configured": true,
+      "lastSuccess": "2026-11-17T06:00:54.184Z",
+      "stale": false,
+      "syncing": false,
+      "degraded": false,
+      "importComplete": false,
+      "pendingUpdates": true
+    }
+  },
+  {
+    "at": "2026-11-17T22:25:54.213Z",
+    "path": "/api/notifications/count",
+    "status": 401,
+    "ms": 147
+  },
+  {
+    "at": "2026-11-17T22:26:03.520Z",
+    "path": "/api/games?q=zelda&limit=3",
+    "status": 200,
+    "ms": 9307
+  }
+]

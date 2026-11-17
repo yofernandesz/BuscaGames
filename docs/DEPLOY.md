@@ -147,6 +147,21 @@ confirmação e recuperação. O teste de entrega confirma o transporte de e-mai
 A abertura de ambos os links recebidos em produção e a conclusão dos fluxos
 por um usuário real ainda precisam ser verificadas.
 
+### Saúde da API na EC2
+
+Na instalação PM2, configure o watchdog após publicar `backend/health-watchdog.sh`:
+
+```sh
+chmod +x /home/ubuntu/BuscaGames/backend/health-watchdog.sh
+(crontab -l 2>/dev/null; echo '* * * * * /home/ubuntu/BuscaGames/backend/health-watchdog.sh') | crontab -
+```
+
+Execute como o mesmo usuário que possui o processo PM2. O script consulta a API
+local a cada minuto e reinicia o processo após três falhas seguidas. Confira
+`journalctl -t buscagames-watchdog` e `/api/health` em caso de alerta. Uma
+falha de disco persistente pode impedir a recuperação automática e requer
+investigação da instância e do volume EBS.
+
 ## Referências
 
 - [Vite na Vercel](https://vercel.com/docs/frameworks/frontend/vite)
