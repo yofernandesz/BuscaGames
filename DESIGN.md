@@ -424,6 +424,7 @@ envio configurado; a interface não afirma que o endereço foi verificado.
 ## Administração
 
 A área administrativa reutiliza Logo, os campos de autenticação, os botões e os tokens do catálogo. A navegação lateral agrupa administração e registros, mostra a identidade da sessão e destaca a seção atual em ciano. No celular, o menu recolhível fica acima dos dados. Tabelas paginadas têm rolagem horizontal local.
+Em Usuários, Bloquear é reversível; Banir remove a conta e suas contribuições da comunidade. O diálogo administrativo identifica a conta, explica a remoção definitiva, começa em Cancelar e mantém erros junto à ação. A conclusão atualiza a lista e move o foco ao título da seção.
 No dashboard administrativo, a linha contínua ciano e a linha tracejada roxa distinguem cadastros e revisões. A tabela expansível oferece os valores diários. Rosquinha e barras mostram a distribuição atual dos perfis e das notas.
 
 ### Comunidade e perfis públicos

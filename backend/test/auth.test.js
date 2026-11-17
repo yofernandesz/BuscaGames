@@ -207,6 +207,16 @@ test('auth: favorites ownership, Google PKCE/state, replay, linking and callback
       assert.equal(repeated.id, account.id);
       assert.equal(repeated.name, expected);
     }
+
+    assert.equal((await request('/api/admin/usuarios', 'POST', { id: googleUser.id, action: 'ban' }, ownerCookie)).status, 200);
+    for (const [sub, email] of [['google-1', 'outra-conta@example.com'], ['outro-subject', googleUser.email]]) {
+      identity = { ...identity, sub, email };
+      flow = await start();
+      response = await request(flow.path, 'GET', undefined, flow.cookie);
+      assert.equal(response.location, '/perfil?auth=google_failed');
+      assert.ok(!response.cookies.some(value => value.startsWith('bg_session=')));
+    }
+    assert.equal(db.prepare('SELECT COUNT(*) AS n FROM users').get().n, 3);
   } finally {
     for (const [key, value] of Object.entries(previous)) { if (value === undefined) delete process.env[key]; else process.env[key] = value; }
     await new Promise((resolve) => app.close(resolve)); db.close();

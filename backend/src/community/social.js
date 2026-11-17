@@ -99,6 +99,7 @@ export async function handleSocial(db, req, url, { userId, readBody, requireActi
     else db.prepare('DELETE FROM comment_likes WHERE user_id=? AND comment_id=?').run(userId, commentId);
     send(200, { liked: body.liked, likeCount: db.prepare('SELECT COUNT(*) AS n FROM comment_likes WHERE comment_id=?').get(commentId).n });
   } else {
+    if (!db.prepare('SELECT 1 FROM users WHERE id=?').get(target)) fail(404, 'Jogador não encontrado.');
     if (target === userId) fail(400, 'Você não pode seguir a própria conta.');
     if (typeof body.following !== 'boolean') fail(400, 'Escolha inválida.');
     if (body.following) db.prepare('INSERT OR IGNORE INTO user_follows VALUES (?,?)').run(userId, target);

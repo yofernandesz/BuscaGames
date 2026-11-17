@@ -87,23 +87,33 @@ function Login({ onLogin }) {
 
 function AccessManager({ section, request, busy, selection, setSelection }) {
   const [email, setEmail] = useState('');
+  const [error, setError] = useState('');
   const dialog = useRef(null);
   useEffect(() => {
     if (selection && !dialog.current.open) dialog.current.showModal();
   }, [selection]);
-  function close() { dialog.current.close(); setSelection(null); }
-  const labels = { grant: 'Conceder acesso', revoke: 'Revogar acesso', block: 'Bloquear usuário', unblock: 'Desbloquear usuário' };
-  const consequences = { grant: 'poderá acessar os dados do painel e gerenciar outros administradores.', revoke: 'perderá o acesso ao painel e terá as sessões administrativas encerradas.', block: 'terá as sessões encerradas e ficará sem acesso à conta.', unblock: 'poderá entrar novamente na conta.' };
+  function close() { dialog.current?.close(); setSelection(null); setError(''); }
+  const labels = { grant: 'Conceder acesso', revoke: 'Revogar acesso', block: 'Bloquear usuário', unblock: 'Desbloquear usuário', ban: 'Banir usuário' };
+  const consequences = { grant: 'poderá acessar os dados do painel e gerenciar outros administradores.', revoke: 'perderá o acesso ao painel e terá as sessões administrativas encerradas.', block: 'terá as sessões encerradas e ficará sem acesso à conta.', unblock: 'poderá entrar novamente na conta.', ban: 'perderá o acesso. O perfil, os comentários, as respostas e as demais atividades serão removidos da comunidade. As respostas de outros jogadores nos comentários dessa conta também serão removidas. Esta ação não pode ser desfeita.' };
+  const banning = selection?.action === 'ban';
   return <>{section === 'administradores' && <form className="admin-compose" noValidate onSubmit={e => {
     e.preventDefault(); setSelection({ email: email.trim(), action: 'grant' });
   }}><label htmlFor="grant-email">E-mail da conta que receberá acesso</label><input type="email" id="grant-email" value={email} onChange={e => setEmail(e.target.value)} />
     <button className="btn-ghost" disabled={busy || !email.trim()}>Conceder acesso</button></form>}
-    <dialog className="admin-confirm" ref={dialog} aria-labelledby="access-title" onCancel={e => { e.preventDefault(); close(); }}>
+    <dialog className="admin-confirm" ref={dialog} aria-labelledby="access-title" aria-describedby="access-consequences"
+      onCancel={e => { e.preventDefault(); if (!busy) close(); }}>
       <h2 id="access-title">{labels[selection?.action]}?</h2>
-      <p><strong>{selection?.email}</strong> {consequences[selection?.action]}</p>
-      <div><button autoFocus className="btn-ghost" onClick={close}>Cancelar</button><button className="btn-ghost" disabled={busy} onClick={async () => {
-        const change = selection; close(); if (await request(change)) setEmail('');
-      }}>{labels[selection?.action]}</button></div>
+      <p id="access-consequences"><strong>{selection?.email}</strong> {consequences[selection?.action]}</p>
+      {error && <p className="auth-error" role="alert">{error}</p>}
+      <div><button autoFocus className="btn-ghost" aria-disabled={busy} onClick={() => { if (!busy) close(); }}>Cancelar</button>
+        <button className={'btn-ghost' + (banning ? ' admin-danger' : '')} disabled={busy} onClick={async () => {
+          setError('');
+          if (await request(selection, false, setError)) {
+            close();
+            setEmail('');
+            if (banning) document.getElementById('admin-section-title')?.focus();
+          }
+        }}>{busy && banning ? 'Banindo…' : labels[selection?.action]}</button></div>
     </dialog></>;
 }
 
@@ -113,6 +123,16 @@ function RecordValue({ field, row }) {
   }
   if (field === 'Data') return new Date(row.Data.replace(' ', 'T') + 'Z').toLocaleString('pt-BR');
   return row[field];
+}
+
+function UserActions({ row, admin, busy, select }) {
+  if (row.id === admin.id) return 'Sua conta';
+  const active = row.Status === 'Ativo';
+  const choose = (action) => select({ id: row.id, email: row['E-mail'], action });
+  return <div className="admin-user-actions">
+    <button className="btn-ghost" disabled={busy} onClick={() => choose(active ? 'block' : 'unblock')}>{active ? 'Bloquear' : 'Desbloquear'}</button>
+    <button className="btn-ghost admin-danger" disabled={busy} onClick={() => choose('ban')}>Banir</button>
+  </div>;
 }
 
 function Panel({ section, data, page, onPage, request, busy }) {
@@ -131,7 +151,7 @@ function Panel({ section, data, page, onPage, request, busy }) {
       if (await request({ message })) setMessage('');
     }}><label htmlFor="admin-message">Mensagem para a equipe</label><input id="admin-message" value={message} maxLength={500} onChange={e => setMessage(e.target.value)} disabled={busy} /><button className="btn-ghost" disabled={busy || !message.trim()}>Enviar mensagem</button></form>}
     {data.rows.length ? <div className="admin-table-wrap" tabIndex={0} role="region" aria-label={sections[section][1]}><table><thead><tr>{columns.map(key => <th key={key}>{key}</th>)}{['usuarios','administradores','verificacoes'].includes(section) && <th>Ação</th>}</tr></thead><tbody>
-      {data.rows.map((row, i) => <tr key={row.id ?? i}>{columns.map(key => <td key={key}><RecordValue row={row} field={key} /></td>)}{section === 'verificacoes' && <td><button className="btn-ghost" disabled={busy} onClick={() => request({ id: row.id })}>Marcar como revisado</button></td>}{section === 'usuarios' && <td>{row.id === data.admin.id ? 'Sua conta' : <button className="btn-ghost" disabled={busy} onClick={() => setSelection({ id: row.id, email: row['E-mail'], action: row.Status === 'Ativo' ? 'block' : 'unblock' })}>{row.Status === 'Ativo' ? 'Bloquear' : 'Desbloquear'}</button>}</td>}{section === 'administradores' && <td>{row.id === data.admin.id ? 'Sua conta' : <button className="btn-ghost" disabled={busy} onClick={() => setSelection({ email: row['E-mail'], action: 'revoke' })}>Revogar acesso</button>}</td>}</tr>)}
+      {data.rows.map((row, i) => <tr key={row.id ?? i}>{columns.map(key => <td key={key}><RecordValue row={row} field={key} /></td>)}{section === 'verificacoes' && <td><button className="btn-ghost" disabled={busy} onClick={() => request({ id: row.id })}>Marcar como revisado</button></td>}{section === 'usuarios' && <td><UserActions row={row} admin={data.admin} busy={busy} select={setSelection} /></td>}{section === 'administradores' && <td>{row.id === data.admin.id ? 'Sua conta' : <button className="btn-ghost" disabled={busy} onClick={() => setSelection({ email: row['E-mail'], action: 'revoke' })}>Revogar acesso</button>}</td>}</tr>)}
     </tbody></table></div> : <p className="admin-empty">{section === 'verificacoes' ? 'Todos os cadastros foram revisados.' : section === 'chat' ? 'Envie a primeira mensagem para a equipe.' : 'Nenhum registro nesta seção.'}</p>}
     {data.pages > 1 && <div className="admin-pagination"><button className="btn-ghost" disabled={page === 1} onClick={() => onPage(page - 1)}>Anterior</button><span>{page} de {data.pages}</span><button className="btn-ghost" disabled={page >= data.pages} onClick={() => onPage(page + 1)}>Próxima</button></div>}
   </>;
@@ -173,20 +193,21 @@ export default function Admin() {
   const error = result?.url === url && result.error;
   if (error?.status === 401) return <Login onLogin={() => { setResult(null); setActionError(''); refresh(); }} />;
   if (!data) return <main className="admin-loading">{error ? <p role="alert">{error.message}</p> : <Skeleton variant={["dashboard", "relatorios"].includes(section) ? "dashboard" : "table"} count={6} label="Carregando painel…" />}{error && <button className="btn-ghost" onClick={refresh}>Tentar novamente</button>}</main>;
-  async function request(body, logout = false) {
+  async function request(body, logout = false, onError = setActionError) {
     if (busy) return false;
     setBusy(true); setActionError(''); setNotice(null);
     try {
       await communityApi('/api/admin/' + (logout ? 'logout' : section), { method: 'POST', body });
       if (logout) setResult(null);
       else {
-        const messages = { usuarios: body.action === 'block' ? 'Usuário bloqueado.' : 'Usuário desbloqueado.', chat: 'Mensagem enviada.', verificacoes: 'Cadastro marcado como revisado.', administradores: body.action === 'grant' ? 'Acesso concedido.' : 'Acesso revogado.' };
+        const userMessages = { ban: 'Usuário banido e removido da comunidade.', block: 'Usuário bloqueado.', unblock: 'Usuário desbloqueado.' };
+        const messages = { usuarios: userMessages[body.action], chat: 'Mensagem enviada.', verificacoes: 'Cadastro marcado como revisado.', administradores: body.action === 'grant' ? 'Acesso concedido.' : 'Acesso revogado.' };
         setNotice({ section, text: messages[section] });
       }
       refresh(); return true;
     } catch (e) {
       if (e.status === 401) { setResult(null); refresh(); }
-      else setActionError(e.message);
+      else onError(e.message);
       return false;
     } finally { setBusy(false); }
   }
@@ -197,7 +218,7 @@ export default function Admin() {
         {group.map(key => <Link to={'/admin/' + key} key={key} aria-label={sections[key][0]} title={sections[key][1]} aria-current={section === key ? 'page' : undefined}><Icon name={key} /><span>{sections[key][0]}</span></Link>)}</nav>)}
     </aside>
     <section className="admin-work"><div className="admin-top"><Logo /><button className="btn-ghost" disabled={busy} onClick={() => request({}, true)}>Sair do painel</button></div>
-      <header><p className="auth-eyebrow">{Object.keys(sections).indexOf(section) > 3 ? 'REGISTROS' : 'ADMINISTRAÇÃO'}</p><h1>{sections[section][0]}</h1><p>{sections[section][1]}</p></header>
+      <header><p className="auth-eyebrow">{Object.keys(sections).indexOf(section) > 3 ? 'REGISTROS' : 'ADMINISTRAÇÃO'}</p><h1 id="admin-section-title" tabIndex={-1}>{sections[section][0]}</h1><p>{sections[section][1]}</p></header>
       <Panel key={section} section={section} data={data} page={data.page || page} onPage={p => setParams({ page: String(p) })} busy={busy} request={request} />
       <p role="status" className="auth-status">{notice?.section === section && notice.text}</p><p role="alert" className="auth-error">{actionError}</p><button className="admin-refresh" onClick={refresh}>Atualizar dados ↻</button>
     </section></main>;

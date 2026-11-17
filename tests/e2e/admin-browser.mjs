@@ -85,6 +85,27 @@ try {
     await page.getByRole('dialog').getByRole('button', { name: action + ' usuário' }).click();
     await playerRow.getByRole('cell', { name: action === 'Bloquear' ? 'Bloqueado' : 'Ativo', exact: true }).waitFor();
   }
+  await page.setViewportSize({ width: 320, height: 800 });
+  const ban = playerRow.getByRole('button', { name: 'Banir', exact: true });
+  const confirmation = page.getByRole('dialog', { name: 'Banir usuário?' });
+  await ban.click();
+  await confirmation.getByText('beta@example.org', { exact: true }).waitFor();
+  assert.ok(await confirmation.getByRole('button', { name: 'Cancelar' }).evaluate(node => node === document.activeElement));
+  await page.keyboard.press('Escape');
+  await confirmation.waitFor({ state: 'hidden' });
+  assert.ok(await ban.evaluate(node => node === document.activeElement));
+  assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth));
+  await page.route('**/api/admin/usuarios', route => route.fulfill({ status: 503, json: { error: 'Serviço indisponível. Tente novamente.' } }), { times: 1 });
+  await ban.click();
+  const confirmBan = confirmation.getByRole('button', { name: 'Banir usuário' });
+  await confirmBan.click();
+  await confirmation.getByRole('alert').getByText('Serviço indisponível. Tente novamente.').waitFor();
+  await confirmBan.click();
+  await page.getByRole('status').getByText('Usuário banido e removido da comunidade.').waitFor();
+  await playerRow.waitFor({ state: 'hidden' });
+  assert.ok(await page.getByRole('heading', { name: 'Usuários' }).evaluate(node => node === document.activeElement));
+  assert.equal((await page.request.get(target + '/api/users/2')).status(), 404);
+  assert.equal((await page.request.get(target + avatarUrl)).status(), 404);
   await page.getByRole('link', { name: 'Chat', exact: true }).click();
   await page.getByLabel('Mensagem para a equipe').fill('Revisão concluída.');
   await page.getByRole('button', { name: 'Enviar mensagem' }).click();
@@ -95,7 +116,7 @@ try {
   await page.screenshot({ path: join(captures, 'admin-mobile.png') });
   await page.getByRole('button', { name: 'Sair do painel' }).click();
   await page.getByRole('heading', { name: 'Acesso administrativo' }).waitFor();
-  console.log('Login, acesso negado, painel, chat, menu móvel e logout verificados.');
+  console.log('Login, painel, banimento com cancelamento e nova tentativa, chat, menu móvel e logout verificados.');
 } finally {
   await browser?.close(); await vite.close(); await new Promise(resolve => api.close(resolve)); db.close();
 }

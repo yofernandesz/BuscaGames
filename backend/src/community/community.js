@@ -9,6 +9,7 @@ import { initializeNicknames, changeNickname, nicknameAvailability } from './nic
 import { validateBackground } from './profileBackground.js';
 import { initializeNotifications, handleNotifications } from './notifications.js';
 import { accountEmailDelivery, accountEmailRoutes, accountTransaction, handleAccountEmail, initializeAccountEmail, issueAccountEmailToken } from './accountEmail.js';
+import { banUser, initializeBans, insertUser, isBanned } from './bans.js';
 
 const deriveKey = promisify(scrypt);
 const hash = (value) => createHash('sha256').update(value).digest('hex');
@@ -78,6 +79,7 @@ export function initializeCommunity(db) {
   initializeSocial(db);
   initializeNotifications(db);
   initializeAccountEmail(db);
+  initializeBans(db);
   if (!db.prepare('PRAGMA table_info(google_flows)').all().some(column => column.name === 'admin_login')) {
     db.exec('ALTER TABLE google_flows ADD COLUMN admin_login INTEGER NOT NULL DEFAULT 0');
   }
@@ -167,7 +169,7 @@ export function communityHandler(db, deliver = accountEmailDelivery()) {
         const background = db.prepare('SELECT png FROM profile_backgrounds WHERE user_id=? AND url=?').get(backgroundRoute[1], url.pathname);
         if (!background) fail(404, 'Plano de fundo não encontrado.');
         res.writeHead(200, { 'Content-Type': 'image/png', 'X-Content-Type-Options': 'nosniff',
-          'Content-Security-Policy': "default-src 'none'; sandbox", 'Cache-Control': 'public, max-age=3600' });
+          'Content-Security-Policy': "default-src 'none'; sandbox", 'Cache-Control': 'no-store' });
         res.end(background.png);
         return true;
       }
@@ -175,7 +177,7 @@ export function communityHandler(db, deliver = accountEmailDelivery()) {
         const photo = db.prepare('SELECT custom_png FROM profile_photos WHERE user_id=? AND custom_url=?').get(photoRoute[1], url.pathname);
         if (!photo) fail(404, 'Foto não encontrada.');
         res.writeHead(200, { 'Content-Type': 'image/png', 'X-Content-Type-Options': 'nosniff',
-          'Content-Security-Policy': "default-src 'none'; sandbox", 'Cache-Control': 'public, max-age=3600' });
+          'Content-Security-Policy': "default-src 'none'; sandbox", 'Cache-Control': 'no-store' });
         res.end(photo.custom_png);
         return true;
       }
@@ -226,6 +228,7 @@ export function communityHandler(db, deliver = accountEmailDelivery()) {
         if (!userId) fail(401, 'Entre na sua conta para responder.');
         requireActive(userId);
         const { body } = await readBody(req);
+        if (!db.prepare('SELECT 1 FROM comments WHERE id=?').get(commentId)) fail(404, 'Comentário não encontrado.');
         if (typeof body !== 'string' || !body.trim() || Array.from(body).length > 35 || body.includes('\0')) fail(400, 'Escreva uma resposta de 1 a 35 caracteres.');
         let inserted;
         try {
@@ -287,7 +290,13 @@ export function communityHandler(db, deliver = accountEmailDelivery()) {
           validateComment(body.message);
           db.prepare('INSERT INTO admin_messages(user_id,body) VALUES (?,?)').run(admin.id, body.message.trim());
         } else if (section === 'usuarios') {
-          if (!Number.isSafeInteger(body.id) || !db.prepare('SELECT 1 FROM users WHERE id=?').get(body.id)) fail(400, 'Conta inválida.');
+          if (!Number.isSafeInteger(body.id) || body.id < 1) fail(400, 'Conta inválida.');
+          if (body.action === 'ban') {
+            if (body.id === admin.id) fail(400, 'Você não pode banir a própria conta.');
+            banUser(db, body.id, admin.id, hash(adminToken), fail);
+            send(200, {}); return true;
+          }
+          if (!db.prepare('SELECT 1 FROM users WHERE id=?').get(body.id)) fail(400, 'Conta inválida.');
           if (body.id === admin.id) fail(400, 'Você não pode bloquear a própria conta.');
           if (body.action === 'block') recordChange(body.id, 'Conta bloqueada', 'INSERT OR IGNORE INTO blocked_users VALUES (?)', body.id);
           else if (body.action === 'unblock') recordChange(body.id, 'Conta desbloqueada', 'DELETE FROM blocked_users WHERE user_id=?', body.id);
@@ -385,13 +394,14 @@ export function communityHandler(db, deliver = accountEmailDelivery()) {
           let message;
           try {
             message = accountTransaction(db, () => {
-              const id = Number(db.prepare('INSERT INTO users(name,email,password_hash,salt) VALUES (?,?,?,?)').run(name, email, passwordHash, salt).lastInsertRowid);
+              if (isBanned(db, email)) fail(409, 'Não foi possível criar a conta com os dados informados. Verifique os dados e tente novamente.', 'email');
+              const id = insertUser(db, name, email, passwordHash, salt);
               db.prepare('INSERT INTO account_emails VALUES (?,NULL)').run(id);
               return issueAccountEmailToken(db, { id, email }, 'verify');
             });
           } catch (error) {
             if (error.message.includes('Nickname já está em uso')) fail(409, 'Este nickname já está em uso. Escolha outro.', 'name');
-            if (error.message.includes('UNIQUE constraint failed: users.email')) fail(409, 'Não foi possível criar a conta com os dados informados. Tente entrar ou use outro e-mail.', 'email');
+            if (error.message.includes('UNIQUE constraint failed: users.email')) fail(409, 'Não foi possível criar a conta com os dados informados. Verifique os dados e tente novamente.', 'email');
             throw error;
           }
           send(201, { user: null, verificationRequired: true, emailSent: await deliver(message) }); return true;

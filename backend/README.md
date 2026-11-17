@@ -388,6 +388,14 @@ corpo não permitem agir por outra pessoa. Bloqueio administrativo revoga sessõ
 existentes e impede novas escritas. Sem sessão retorna 401, dados inválidos 400,
 recurso ausente 404, método inválido 405. Banco impõe unicidade das relações.
 
+No painel, **Banir** é definitivo. `POST /api/admin/usuarios` com
+`{id, action: "ban"}` exige uma sessão administrativa e não aceita a própria
+conta. A transação apaga perfil, imagens, sessões, avaliações, favoritos e
+atividade social, incluindo os tópicos iniciados pela conta e suas respostas.
+O banco mantém o ID reservado e os hashes do e-mail e do vínculo Google para
+impedir recriação. A auditoria registra quem aplicou a medida sem exibir a
+identidade do alvo. A medida não recolhe e-mails enviados ou cópias externas.
+
 Nome, foto, favoritos, notas e listas de conexões são públicos, conforme o recurso
 solicitado; cadastro e política de privacidade informam essa visibilidade. Usuários
 podem remover favoritos/notas, descurtir e deixar de seguir. A interação é feita por

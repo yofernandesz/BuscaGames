@@ -1,6 +1,8 @@
 import { createHash, randomBytes } from 'node:crypto';
 import { availableNickname } from './nicknames.js';
 import { accountTransaction, markEmailVerified } from './accountEmail.js';
+import { insertUser, isBanned } from './bans.js';
+import { normalizeEmail } from '../../../shared/accountPolicy.mjs';
 
 const hash = (value) => createHash('sha256').update(value).digest('hex');
 const random = () => randomBytes(32).toString('base64url');
@@ -101,45 +103,46 @@ export function googleAuthHandler(db) {
       const identity = await response.json();
       if (typeof identity.sub !== 'string' || !identity.sub || identity.sub.length > 255 || identity.email_verified !== true
         || typeof identity.email !== 'string' || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(identity.email) || identity.email.length > 254) throw new Error('Invalid Google identity');
-      // Recheck after network I/O so logout during the exchange cannot authorize a link.
-      if (flow.session_token && !db.prepare('SELECT 1 FROM sessions WHERE token=? AND user_id=? AND expires>?').get(flow.session_token, userId, Date.now())) throw new Error('Link session expired');
-      const linked = db.prepare('SELECT user_id FROM google_accounts WHERE subject=?').get(identity.sub);
-      let id = linked?.user_id;
-      if (id && db.prepare('SELECT 1 FROM blocked_users WHERE user_id=?').get(id)) {
-        outcome = 'google_blocked'; throw new Error('Account blocked');
-      }
-      if (adminLogin) {
-        try { sessionCookie = startAdminSession(id); }
-        catch (error) {
-          if (error.status === 403) outcome = 'google_admin_denied';
-          throw error;
+      const email = normalizeEmail(identity.email);
+      sessionCookie = accountTransaction(db, () => {
+        // Recheck after network I/O so logout during the exchange cannot authorize a link.
+        if (flow.session_token && !db.prepare('SELECT 1 FROM sessions WHERE token=? AND user_id=? AND expires>?').get(flow.session_token, userId, Date.now())) throw new Error('Link session expired');
+        if (isBanned(db, email, identity.sub)) throw new Error('Identity banned');
+        const linked = db.prepare('SELECT user_id FROM google_accounts WHERE subject=?').get(identity.sub);
+        let id = linked?.user_id;
+        if (id && db.prepare('SELECT 1 FROM blocked_users WHERE user_id=?').get(id)) {
+          outcome = 'google_blocked'; throw new Error('Account blocked');
         }
-      } else if (flow.session_token) {
-        const existing = db.prepare('SELECT subject FROM google_accounts WHERE user_id=?').get(userId);
-        if ((linked && id !== userId) || (existing && existing.subject !== identity.sub)) { outcome = 'google_conflict'; throw new Error('Account already linked'); }
-        db.prepare('INSERT OR IGNORE INTO google_accounts VALUES (?,?)').run(identity.sub, userId);
-        id = userId;
-      } else if (!id) {
-        const email = identity.email.toLowerCase().trim();
-        if (db.prepare('SELECT 1 FROM users WHERE email=?').get(email)) { outcome = 'google_existing'; throw new Error('Sign in before linking'); }
-        accountTransaction(db, () => {
-          id = Number(db.prepare('INSERT INTO users(name,email,password_hash,salt) VALUES (?,?,?,?)').run(
-            availableNickname(db, identity.name), email, '', '').lastInsertRowid);
+        let adminSession;
+        if (adminLogin) {
+          try { adminSession = startAdminSession(id); }
+          catch (error) {
+            if (error.status === 403) outcome = 'google_admin_denied';
+            throw error;
+          }
+        } else if (flow.session_token) {
+          const existing = db.prepare('SELECT subject FROM google_accounts WHERE user_id=?').get(userId);
+          if ((linked && id !== userId) || (existing && existing.subject !== identity.sub)) { outcome = 'google_conflict'; throw new Error('Account already linked'); }
+          db.prepare('INSERT OR IGNORE INTO google_accounts VALUES (?,?)').run(identity.sub, userId);
+          id = userId;
+        } else if (!id) {
+          if (db.prepare('SELECT 1 FROM users WHERE email=?').get(email)) { outcome = 'google_existing'; throw new Error('Sign in before linking'); }
+          id = insertUser(db, availableNickname(db, identity.name), email, '', '');
           db.prepare('INSERT INTO google_accounts VALUES (?,?)').run(identity.sub, id);
           markEmailVerified(db, id);
-        });
-      }
-      // A linked Google identity can verify only the address stored on this account.
-      if (db.prepare('SELECT email FROM users WHERE id=?').get(id)?.email === identity.email.trim().toLowerCase()) {
-        const verified = db.prepare('SELECT verified_at FROM account_emails WHERE user_id=?').get(id);
-        if (!verified?.verified_at) accountTransaction(db, () => markEmailVerified(db, id));
-      }
-      const googleUrl = profilePicture(identity, tokens.id_token);
-      if (googleUrl) {
-        db.prepare(`INSERT INTO profile_photos(user_id,google_url) VALUES (?,?)
-          ON CONFLICT(user_id) DO UPDATE SET google_url=excluded.google_url`).run(id, googleUrl);
-      }
-      if (!adminLogin) sessionCookie = startSession(id);
+        }
+        // A linked Google identity can verify only the address stored on this account.
+        if (db.prepare('SELECT email FROM users WHERE id=?').get(id)?.email === email) {
+          const verified = db.prepare('SELECT verified_at FROM account_emails WHERE user_id=?').get(id);
+          if (!verified?.verified_at) markEmailVerified(db, id);
+        }
+        const googleUrl = profilePicture(identity, tokens.id_token);
+        if (googleUrl) {
+          db.prepare(`INSERT INTO profile_photos(user_id,google_url) VALUES (?,?)
+            ON CONFLICT(user_id) DO UPDATE SET google_url=excluded.google_url`).run(id, googleUrl);
+        }
+        return adminLogin ? adminSession : startSession(id);
+      });
       outcome = flow.session_token ? 'google_linked' : 'google_success';
     } catch { /* Return a bounded public error; provider tokens and codes must never enter logs. */ }
     const target = new URL(destination, 'https://buscagames.local');
