@@ -87,6 +87,19 @@ try {
   }
   await page.setViewportSize({ width: 320, height: 800 });
   const ban = playerRow.getByRole('button', { name: 'Banir', exact: true });
+  await page.route('**/api/admin/usuarios?page=*', async route => {
+    const response = await route.fetch();
+    const { canBanUsers, ...legacy } = await response.json();
+    assert.equal(canBanUsers, true);
+    await route.fulfill({ response, json: legacy });
+  }, { times: 1 });
+  const refresh = page.getByRole('button', { name: /Atualizar dados/ });
+  await refresh.click();
+  await page.getByRole('status').getByText(/Banimento indisponível/).waitFor();
+  assert.equal(await ban.count(), 0);
+  assert.ok(await playerRow.getByRole('button', { name: 'Bloquear', exact: true }).isEnabled());
+  await refresh.click();
+  await ban.waitFor();
   const confirmation = page.getByRole('dialog', { name: 'Banir usuário?' });
   await ban.click();
   await confirmation.getByText('beta@example.org', { exact: true }).waitFor();

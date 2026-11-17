@@ -112,6 +112,11 @@ do GitHub validam o código e publicam uma versão separada no GitHub Pages;
 eles não atualizam automaticamente a VM da API. Alterações em `backend/`
 precisam ser publicadas também na VM, preservando o banco e o ambiente.
 
+Publique a API antes do frontend quando uma ação administrativa exigir suporte
+novo do servidor. Em `GET /api/admin/usuarios`, uma sessão administrativa deve
+receber `canBanUsers: true` para habilitar o banimento. O healthcheck confirma
+que o processo responde, mas também retorna sucesso em versões sem banimento.
+
 O recurso de notificações cria suas tabelas e triggers ao abrir o banco na
 nova versão da API. A rota `/api/notifications/count` deve retornar 401 JSON
 sem sessão, e contagem apenas para o usuário conectado. Um 404 indica que o

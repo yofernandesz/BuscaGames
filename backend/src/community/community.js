@@ -274,7 +274,7 @@ export function communityHandler(db, deliver = accountEmailDelivery()) {
           if (!Number.isSafeInteger(page) || page < 1) fail(400, 'Página inválida.');
           const result = adminSection(db, section, page);
           if (!result) fail(404, 'Seção não encontrada.');
-          send(200, { admin, ...result }); return true;
+          send(200, { admin, ...result, ...(section === 'usuarios' && { canBanUsers: true }) }); return true;
         }
         if (req.method !== 'POST') fail(405, 'Método não permitido.');
         const body = await readBody(req);

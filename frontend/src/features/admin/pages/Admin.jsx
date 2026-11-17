@@ -125,13 +125,13 @@ function RecordValue({ field, row }) {
   return row[field];
 }
 
-function UserActions({ row, admin, busy, select }) {
+function UserActions({ row, admin, canBanUsers, busy, select }) {
   if (row.id === admin.id) return 'Sua conta';
   const active = row.Status === 'Ativo';
   const choose = (action) => select({ id: row.id, email: row['E-mail'], action });
   return <div className="admin-user-actions">
     <button className="btn-ghost" disabled={busy} onClick={() => choose(active ? 'block' : 'unblock')}>{active ? 'Bloquear' : 'Desbloquear'}</button>
-    <button className="btn-ghost admin-danger" disabled={busy} onClick={() => choose('ban')}>Banir</button>
+    {canBanUsers && <button className="btn-ghost admin-danger" disabled={busy} onClick={() => choose('ban')}>Banir</button>}
   </div>;
 }
 
@@ -146,12 +146,13 @@ function Panel({ section, data, page, onPage, request, busy }) {
   const columns = Object.keys(data.rows[0] || {}).filter(key => !['id', 'reviewed', 'avatarUrl'].includes(key));
   return <>
     {['usuarios','administradores'].includes(section) && <AccessManager section={section} request={request} busy={busy} selection={selection} setSelection={setSelection} />}
+    {section === 'usuarios' && !data.canBanUsers && <p className="auth-status" role="status">Banimento indisponível. Atualize a API do BuscaGames para habilitar essa ação.</p>}
     {section === 'chat' && <form className="admin-compose" noValidate onSubmit={async e => {
       e.preventDefault();
       if (await request({ message })) setMessage('');
     }}><label htmlFor="admin-message">Mensagem para a equipe</label><input id="admin-message" value={message} maxLength={500} onChange={e => setMessage(e.target.value)} disabled={busy} /><button className="btn-ghost" disabled={busy || !message.trim()}>Enviar mensagem</button></form>}
     {data.rows.length ? <div className="admin-table-wrap" tabIndex={0} role="region" aria-label={sections[section][1]}><table><thead><tr>{columns.map(key => <th key={key}>{key}</th>)}{['usuarios','administradores','verificacoes'].includes(section) && <th>Ação</th>}</tr></thead><tbody>
-      {data.rows.map((row, i) => <tr key={row.id ?? i}>{columns.map(key => <td key={key}><RecordValue row={row} field={key} /></td>)}{section === 'verificacoes' && <td><button className="btn-ghost" disabled={busy} onClick={() => request({ id: row.id })}>Marcar como revisado</button></td>}{section === 'usuarios' && <td><UserActions row={row} admin={data.admin} busy={busy} select={setSelection} /></td>}{section === 'administradores' && <td>{row.id === data.admin.id ? 'Sua conta' : <button className="btn-ghost" disabled={busy} onClick={() => setSelection({ email: row['E-mail'], action: 'revoke' })}>Revogar acesso</button>}</td>}</tr>)}
+      {data.rows.map((row, i) => <tr key={row.id ?? i}>{columns.map(key => <td key={key}><RecordValue row={row} field={key} /></td>)}{section === 'verificacoes' && <td><button className="btn-ghost" disabled={busy} onClick={() => request({ id: row.id })}>Marcar como revisado</button></td>}{section === 'usuarios' && <td><UserActions row={row} admin={data.admin} canBanUsers={data.canBanUsers} busy={busy} select={setSelection} /></td>}{section === 'administradores' && <td>{row.id === data.admin.id ? 'Sua conta' : <button className="btn-ghost" disabled={busy} onClick={() => setSelection({ email: row['E-mail'], action: 'revoke' })}>Revogar acesso</button>}</td>}</tr>)}
     </tbody></table></div> : <p className="admin-empty">{section === 'verificacoes' ? 'Todos os cadastros foram revisados.' : section === 'chat' ? 'Envie a primeira mensagem para a equipe.' : 'Nenhum registro nesta seção.'}</p>}
     {data.pages > 1 && <div className="admin-pagination"><button className="btn-ghost" disabled={page === 1} onClick={() => onPage(page - 1)}>Anterior</button><span>{page} de {data.pages}</span><button className="btn-ghost" disabled={page >= data.pages} onClick={() => onPage(page + 1)}>Próxima</button></div>}
   </>;

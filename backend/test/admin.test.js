@@ -96,6 +96,7 @@ test('administration requires independent authorized login, rechecks roles and p
     await call('admin/administradores', cookie, { email: other.email, action: 'grant' });
     const targetAdmin = (await call('admin/login', '', other)).headers.get('set-cookie').split(';')[0];
     const ban = { id: 2, action: 'ban' };
+    assert.equal((await (await call('admin/usuarios', cookie)).json()).canBanUsers, true);
     assert.equal((await call('admin/usuarios', targetRegular, ban)).status, 401);
     assert.equal((await call('admin/usuarios', cookie, { ...ban, id: 1 })).status, 400);
     assert.equal((await call('users/2', regular)).status, 200);
