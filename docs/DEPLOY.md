@@ -122,14 +122,30 @@ e `PUBLIC_SITE_URL=https://busca-games.vercel.app` no backend. A ausência
 dessas variáveis não impede notificações no site. Consulte
 [a configuração de email](../backend/README.md#email-opcional).
 
-Para cadastro por senha e recuperação, configure também `AUTH_EMAIL_FROM`
-com um remetente em domínio verificado no Resend. Publique o frontend e a API
+Para cadastro por senha e recuperação, configure `AUTH_EMAIL_FROM` com um
+remetente verificado. Para Brevo, use `AUTH_EMAIL_PROVIDER=brevo` e
+`BREVO_API_KEY` com permissão de envio transacional. Para Resend, use
+`AUTH_EMAIL_PROVIDER=resend` e `RESEND_API_KEY`. Publique o frontend e a API
 com a mesma versão do fluxo. A API cria as tabelas ao abrir o volume existente.
 Confirme a entrega dos dois e-mails pelo domínio público, a abertura dos
 links em um celular e a revogação de sessões após a troca da senha.
 Planeje a reversão antes de aceitar novos cadastros. Uma versão anterior
 da API ignora o estado pendente dessas contas.
 [Configuração da autenticação por e-mail](../backend/README.md#confirmação-de-e-mail-e-recuperação-de-senha).
+
+### Ativação do Brevo em 16/11/2026
+
+A instalação atual executa a API pelo PM2, processo `buscagames-api`, em
+`/home/ubuntu/BuscaGames`. As variáveis privadas ficam em `backend/.env`.
+O provedor de autenticação foi configurado como Brevo, a API foi reiniciada
+e o estado do PM2 foi salvo. O envio transacional retornou 201 e o responsável
+confirmou o recebimento da mensagem de teste na caixa de entrada.
+
+Os 65 testes do backend passaram na VM com bancos isolados. A API pública
+retornou saúde 200, Google habilitado e rejeição 400 para tokens inválidos de
+confirmação e recuperação. O teste de entrega confirma o transporte de e-mail.
+A abertura de ambos os links recebidos em produção e a conclusão dos fluxos
+por um usuário real ainda precisam ser verificadas.
 
 ## Referências
 
