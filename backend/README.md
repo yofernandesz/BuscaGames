@@ -183,6 +183,19 @@ SQLite. Não é necessário rodar uma migração separada.
 
 ### Confirmação de e-mail e recuperação de senha
 
+Para usar Brevo, configure `AUTH_EMAIL_PROVIDER=brevo`, `BREVO_API_KEY`,
+`AUTH_EMAIL_FROM=BuscaGames <SEU_EMAIL_VERIFICADO>` e
+`PUBLIC_SITE_URL=https://busca-games.vercel.app` no ambiente da API.
+Verifique o remetente no painel Brevo e habilite o envio transacional.
+Use uma chave de API, mantenha o plano gratuito e desative rastreamento de links
+de autenticação. Reinicie a API após salvar o ambiente. Confirme o recebimento
+real de um cadastro e de uma recuperação antes de considerar o envio ativado.
+Brevo pode substituir remetentes de domínio gratuito por um endereço próprio.
+O seletor afeta os e-mails da conta; notificações sociais seguem a configuração
+Resend existente. O padrão `AUTH_EMAIL_PROVIDER=resend` preserva instalações
+anteriores. Nenhuma migração adicional de banco é necessária.
+[API Brevo](https://developers.brevo.com/reference/send-transac-email).
+
 Configure o Resend antes de habilitar novos cadastros por senha. Adicione e
 verifique um domínio no Resend com os registros DNS indicados pelo painel.
 Use um remetente desse domínio, uma chave com permissão de envio e desative

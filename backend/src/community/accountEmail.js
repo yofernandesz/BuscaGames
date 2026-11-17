@@ -44,9 +44,14 @@ export function markEmailVerified(db, id) {
 }
 
 export function accountEmailDelivery(env = process.env, fetcher = fetch) {
-  const { PUBLIC_SITE_URL, AUTH_EMAIL_FROM, RESEND_API_KEY } = env;
+  const { PUBLIC_SITE_URL, AUTH_EMAIL_FROM, RESEND_API_KEY, BREVO_API_KEY } = env;
+  const provider = env.AUTH_EMAIL_PROVIDER || 'resend';
+  if (!['resend', 'brevo'].includes(provider)) return null;
+  const apiKey = provider === 'brevo' ? BREVO_API_KEY : RESEND_API_KEY;
+  const senderMatch = /^(.*?)\s*<([^<>]+)>$/.exec(AUTH_EMAIL_FROM || '');
+  const sender = { name: senderMatch?.[1]?.trim() || 'BuscaGames', email: senderMatch?.[2] || AUTH_EMAIL_FROM };
   const url = URL.canParse(PUBLIC_SITE_URL || '') ? new URL(PUBLIC_SITE_URL) : null;
-  if (!url || !AUTH_EMAIL_FROM || !RESEND_API_KEY || url.username || url.password || url.pathname !== '/' || url.search || url.hash) return null;
+  if (!url || !apiKey || !validAccountEmail(sender.email) || url.username || url.password || url.pathname !== '/' || url.search || url.hash) return null;
   const local = ['localhost', '127.0.0.1', '[::1]'].includes(url.hostname)
     && (env.NODE_ENV !== 'production' || env.SESSION_COOKIE_SECURE === 'false');
   if (url.protocol !== 'https:' && !(url.protocol === 'http:' && local)) return null;
@@ -59,17 +64,18 @@ export function accountEmailDelivery(env = process.env, fetcher = fetch) {
       ? 'Confirme somente se você criou esta conta ou solicitou a confirmação.'
       : 'Use o link para escolher uma nova senha.';
     const text = `${instruction}\n\n${link}\n\nO link expira em 15 minutos. Se você não fez a solicitação, ignore este e-mail.`;
+    const html = `<p>${instruction}</p><p><a style="display:inline-block;padding:12px 20px;background:#121026;color:#fff;border-radius:8px" href="${link}">${action}</a></p><p>O link expira em 15 minutos. Se você não fez a solicitação, ignore este e-mail.</p>`;
     try {
-      const response = await fetcher('https://api.resend.com/emails', {
+      const brevo = provider === 'brevo';
+      const response = await fetcher(brevo ? 'https://api.brevo.com/v3/smtp/email' : 'https://api.resend.com/emails', {
         method: 'POST', redirect: 'error', signal: AbortSignal.timeout(8000),
-        headers: { Authorization: `Bearer ${RESEND_API_KEY}`, 'Content-Type': 'application/json',
-          'Idempotency-Key': `account-${purpose}-${tokenHash(token)}` },
-        body: JSON.stringify({
-          from: AUTH_EMAIL_FROM, to: [email], subject, text,
-          html: `<p>${instruction}</p><p><a style="display:inline-block;padding:12px 20px;background:#121026;color:#fff;border-radius:8px" href="${link}">${action}</a></p><p>O link expira em 15 minutos. Se você não fez a solicitação, ignore este e-mail.</p>`,
-        }),
+        headers: brevo ? { 'api-key': apiKey, 'Content-Type': 'application/json' }
+          : { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json', 'Idempotency-Key': `account-${purpose}-${tokenHash(token)}` },
+        body: JSON.stringify(brevo
+          ? { sender, to: [{ email }], subject, textContent: text, htmlContent: html }
+          : { from: AUTH_EMAIL_FROM, to: [email], subject, text, html }),
       });
-      if (response.ok) return true;
+      if (response.ok && (provider !== 'brevo' || typeof (await response.json()).messageId === 'string')) return true;
     } catch { /* Provider responses and errors may contain private data. */ }
     console.warn('Falha no envio de e-mail de autenticação.');
     return false;

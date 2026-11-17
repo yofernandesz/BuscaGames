@@ -12,6 +12,30 @@ const nextPassword = 'Cometas!93-Névoa';
 const newPassword = { password: nextPassword, passwordConfirmation: nextPassword };
 const hash = (token) => createHash('sha256').update(token).digest('hex');
 
+test('Brevo sends both account emails and rejects provider failures', async () => {
+  const env = { AUTH_EMAIL_PROVIDER: 'brevo', BREVO_API_KEY: 'test-brevo',
+    AUTH_EMAIL_FROM: 'BuscaGames <sender@example.com>', PUBLIC_SITE_URL: 'https://buscagames.example' };
+  assert.equal(accountEmailDelivery({ ...env, BREVO_API_KEY: '' }), null);
+  assert.equal(accountEmailDelivery({ ...env, AUTH_EMAIL_PROVIDER: 'unknown' }), null);
+  for (const purpose of ['verify', 'reset']) {
+    const deliver = accountEmailDelivery(env, async (url, request) => {
+      assert.equal(url, 'https://api.brevo.com/v3/smtp/email');
+      assert.equal(request.headers['api-key'], 'test-brevo');
+      const body = JSON.parse(request.body);
+      assert.deepEqual(body.sender, { name: 'BuscaGames', email: 'sender@example.com' });
+      assert.deepEqual(body.to, [{ email: 'player@example.com' }]);
+      assert.ok(body.textContent.includes('#' + 'a'.repeat(43)));
+      assert.ok(body.htmlContent.includes(purpose === 'verify' ? '/verificar-email' : '/redefinir-senha'));
+      return Response.json({ messageId: 'accepted' }, { status: 201 });
+    });
+    assert.equal(await deliver({ email: 'player@example.com', purpose, token: 'a'.repeat(43) }), true);
+  }
+  for (const response of [Response.json({}, { status: 401 }), Response.json({}, { status: 429 }), Response.json({})]) {
+    const deliver = accountEmailDelivery(env, async () => response);
+    assert.equal(await deliver({ email: 'player@example.com', purpose: 'reset', token: 'a'.repeat(43) }), false);
+  }
+});
+
 async function setup(t, configured = true) {
   const db = openCatalog(':memory:');
   const mailbox = testMailbox();
