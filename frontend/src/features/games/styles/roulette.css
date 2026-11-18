@@ -122,7 +122,7 @@
   overflow: hidden;
   border: 1px solid #c2a5ff80;
   border-radius: 50%;
-  background-image: radial-gradient(circle, #110d26 0%, transparent 60%, #0b0a125e 100%), var(--segments);
+  background-image: radial-gradient(circle, #110d26 4%, #100d294a 59%, transparent 86%, #ede3ff40 98%, #120c28 100%), var(--segments);
 }
 .roulette-disc-label {
   position: absolute;
@@ -142,17 +142,17 @@
   place-items: center;
   border: 1px solid #b995ff;
   border-radius: 50%;
-  background: radial-gradient(circle at 40% 25%, #604686, #24183c 55%, #0f0c21);
+  background: radial-gradient(circle at 38% 24%, #b38bdf, #553578 33%, #211336 65%, #100d24 80%, #745a9c);
   color: #f0dfff;
   font-size: clamp(1.1rem, 4vw, 2.1rem);
   box-shadow: inset 0 0 0 4px #1d1336, 0 0 1.1rem #000a;
   text-shadow: 0 0 .65rem #bd91ff;
 }
 .roulette-pointer { position: absolute; z-index: 2; left: 50%; top: -2%; width: 8%; height: 12%; transform: translateX(-50%); filter: drop-shadow(0 0 .4rem #34f0e0b0); }
-.roulette-pointer::before { content: ''; display: block; height: 100%; clip-path: polygon(0 0, 100% 0, 78% 58%, 50% 100%, 22% 58%); background: linear-gradient(#e7fffd, #42f3e3 70%, #76b9ff); }
+.roulette-pointer::before { content: ''; display: block; height: 100%; clip-path: polygon(0 0, 100% 0, 78% 58%, 50% 100%, 22% 58%); background: conic-gradient(from 180deg at 50% 44%, #1ac3c9, #e2ffff 33%, #63fff3 58%, #2286c4 82%, #1ac3c9); }
 
 .roulette-draw { width: 100%; display: grid; justify-items: center; gap: .55rem; text-align: center; }
-.roulette-spin { gap: .55rem; min-width: min(13rem, 100%); font-size: 1.05rem; color: var(--bg-0); background: linear-gradient(105deg, #bdaaff, #98f6ee); }
+.roulette-spin { gap: .55rem; min-width: min(13rem, 100%); font-size: 1.05rem; color: var(--bg-0); background: linear-gradient(105deg, #cda1ff, #91baff 52%, #53ffe7); }
 .roulette-page :is(button, input, select):disabled, .roulette-page button[aria-disabled='true'] { opacity: .58; cursor: default; }
 .roulette-page button:is(:disabled, [aria-disabled='true']):is(:hover, :active) { filter: none; transform: none; box-shadow: none; }
 .roulette-result {
@@ -174,8 +174,8 @@
 .roulette-result .btn-ghost { margin-top: .45rem; }
 .roulette-cover { flex: 0 0 auto; width: clamp(2.8rem, 7vw, 4rem); height: auto; aspect-ratio: 3 / 4; object-fit: cover; border-radius: 5px; }
 .roulette-sparks { position: absolute; inset: 0; pointer-events: none; z-index: 3; }
-.roulette-sparks > span { position: absolute; left: 50%; top: 50%; width: 50%; opacity: 0; transform-origin: 0 50%; color: #affff7; }
-.roulette-sparks > span:nth-child(even) { color: #d9baff; }
+.roulette-sparks > span { position: absolute; left: 50%; top: 50%; width: 50%; opacity: 0; transform-origin: 0 50%; color: #64ffe6; }
+.roulette-sparks > span:nth-child(even) { color: #e59cff; }
 .roulette-sparks i { display: block; width: clamp(7px, 2.1vw, 26px); height: 2px; background: linear-gradient(90deg, transparent, currentColor); border-radius: 99px; box-shadow: 4px 0 9px currentColor; }
 .roulette-sparks > span:nth-child(3n) i { width: 6px; height: 6px; background: currentColor; border-radius: 1px; transform: rotate(45deg); }
 
@@ -183,10 +183,12 @@
   .roulette-wheel[data-state='winner'] .roulette-disc-label { transition: transform .32s ease-out; }
   .roulette-wheel[data-state='spinning'] .roulette-ring::after { animation: roulette-energy 2.5s linear infinite; }
   .roulette-wheel[data-state='winner'] .roulette-ring::after { animation: roulette-flare 1.4s ease-out; }
+  .roulette-sparks::before { content: ""; position: absolute; inset: 4%; border: 2px solid #8bfff1; border-radius: 50%; box-shadow: 0 0 .8rem #956aff; animation: roulette-wave 1s ease-out both; }
   .roulette-highlight { animation: roulette-flare 1.3s ease-out; }
   .roulette-sparks > span { animation: roulette-spark 1.05s cubic-bezier(.12,.65,.24,1) var(--delay) both; }
   .roulette-result { animation: roulette-reveal .55s ease-out both; }
 }
+@keyframes roulette-wave { from { opacity: .8; transform: scale(.78); } to { opacity: 0; transform: scale(1.1); } }
 @keyframes roulette-energy { to { rotate: 1turn; } }
 @keyframes roulette-flare { 0% { opacity: .4; } 30% { opacity: 1; filter: brightness(1.6); } 100% { opacity: .88; } }
 @keyframes roulette-spark {

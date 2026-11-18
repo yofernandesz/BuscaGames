@@ -1,9 +1,9 @@
 import { MAX_GAMES, segmentCenter } from '../model/roulette';
 
-const colors = ['#4b2677', '#1c455b', '#332368', '#1f575b', '#54285e', '#24375d'];
+const colors = ['#933aff', '#007eae', '#5053ee', '#00877d', '#c12c87', '#295dc4'];
 const sparks = Array.from({ length: 18 }, (_, index) => ({
   '--direction': `${index * 20 + (index % 3) * 4}deg`,
-  '--distance': `${64 + (index % 5) * 8}%`,
+  '--distance': `${81 + (index % 5) * 5}%`,
   '--delay': `${(index % 4) * 60}ms`,
 }));
 
@@ -12,7 +12,7 @@ export default function RouletteWheel({ games, spinning, winner, celebration, wh
   const slice = 360 / count;
   const labelTurn = winner ? 180 - (winner.restingAngle + 180) % 360 : 0;
   const stops = Array.from({ length: count }, (_, index) => {
-    const color = games.length ? colors[index] : index % 2 ? '#1c1837' : '#251d43';
+    const color = games.length ? colors[index] : index % 2 ? '#233257' : '#472874';
     const start = index * slice;
     return `${color} ${start}deg ${(index + 1) * slice - 0.65}deg, #100e24 ${(index + 1) * slice - 0.65}deg ${(index + 1) * slice}deg`;
   });
