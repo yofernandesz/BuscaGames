@@ -11,6 +11,7 @@ export default function Header({ children }) {
         <Logo />
         <nav className="main-nav" aria-label="Navegação principal">
           <NavLink to="/" end>Catálogo</NavLink>
+          <NavLink to="/roleta-gamer">Roleta Gamer</NavLink>
           <NavLink to="/biblioteca">Minha biblioteca</NavLink>
           <NavLink to="/comunidade">Comunidade</NavLink>
           <NavLink to="/perfil">Perfil</NavLink>

@@ -34,6 +34,31 @@ test('genres and themes appear in lists and details and are searchable in Portug
   } finally { if (app.listening) await new Promise((resolve) => app.close(resolve)); db.close(); }
 });
 
+test('the genre query filters exact stored genres before pagination', async () => {
+  const db = openCatalog(':memory:');
+  const app = createApp(db);
+  try {
+    upsertGames(db, [
+      game(1, { genres: [{ name: 'Role-playing (RPG)' }] }),
+      game(2, { name: 'Role-playing (RPG)', themes: [{ name: 'Role-playing (RPG)' }] }),
+      game(3, { genres: [{ name: 'Role-playing (RPG) Extra' }] }),
+      game(4, { genres: [{ name: 'Role-playing (RPG)' }] }),
+    ]);
+    await new Promise((resolve) => app.listen(0, '127.0.0.1', resolve));
+    const base = `http://127.0.0.1:${app.address().port}/api/games`;
+    const params = new URLSearchParams({ genre: 'Role-playing (RPG)', limit: '1' });
+    const first = await fetch(`${base}?${params}`).then((response) => response.json());
+    assert.deepEqual(first.games.map(({ id, genres }) => [id, genres]), [['igdb-1', ['RPG']]]);
+    assert.equal(first.total, 2);
+    assert.equal(first.hasMore, true);
+    params.set('page', '2');
+    const second = await fetch(`${base}?${params}`).then((response) => response.json());
+    assert.deepEqual(second.games.map(({ id }) => id), ['igdb-4']);
+    assert.equal(second.hasMore, false);
+    assert.equal((await fetch(`${base}?genre=${'x'.repeat(121)}`)).status, 400);
+  } finally { if (app.listening) await new Promise((resolve) => app.close(resolve)); db.close(); }
+});
+
 test('theme backfill refreshes old unchanged games and resumes after failure', async () => {
   const db = openCatalog(':memory:');
   try {

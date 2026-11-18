@@ -60,10 +60,11 @@ export function createApp(db, configured = false, accountEmail) {
           const limit = Number(url.searchParams.get('limit') || 12);
           const section = url.searchParams.get('section') || '';
           const query = (url.searchParams.get('q') || '').trim();
-          if (!Number.isSafeInteger(page) || page < 1 || page > 100000 || !Number.isSafeInteger(limit) || limit < 1 || limit > 48 || query.length > 120 || (section && !SECTIONS.some((s) => s.id === section))) {
+          const genre = (url.searchParams.get('genre') || '').trim();
+          if (!Number.isSafeInteger(page) || page < 1 || page > 100000 || !Number.isSafeInteger(limit) || limit < 1 || limit > 48 || query.length > 120 || genre.length > 120 || (section && !SECTIONS.some((s) => s.id === section))) {
             res.writeHead(400); return res.end('Parâmetros inválidos');
           }
-          data = listGames(db, { page, limit, section, query });
+          data = listGames(db, { page, limit, section, query, genre });
         } else if (detailGame) {
           data = localizeGame(db, detailGame);
         }

@@ -1,6 +1,6 @@
 vi.mock("../lib/communityApi", () => ({ communityApi: vi.fn() }));
 import { communityApi } from "../lib/communityApi";
-import { act, fireEvent, render, screen, within, waitFor } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen, within, waitFor } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 
@@ -15,7 +15,17 @@ beforeEach(() => {
   vi.stubGlobal("fetch", vi.fn(async (url) => ({ ok: true, json: async () => url === "/api/home"
     ? { sections: [], catalog: emptyPage, status: { configured: false } } : emptyPage })));
 });
-afterEach(() => { vi.unstubAllGlobals(); vi.restoreAllMocks(); });
+afterEach(() => { cleanup(); vi.unstubAllGlobals(); vi.restoreAllMocks(); });
+
+it("abre a Roleta Gamer pela navegação principal", async () => {
+  localStorage.setItem("buscagames:cookie-choice", "rejected");
+  render(<MemoryRouter initialEntries={["/privacidade"]}><App /></MemoryRouter>);
+  fireEvent.click(screen.getByRole("link", { name: "Roleta Gamer" }));
+  await waitFor(() => expect(screen.getByRole("button", { name: "Entrar" })).toBeEnabled());
+  expect(screen.getByRole("heading", { level: 1, name: "Roleta Gamer" })).toHaveFocus();
+  expect(screen.getByRole("link", { name: "Roleta Gamer" })).toHaveAttribute("aria-current", "page");
+  expect(document.title).toBe("Roleta Gamer — BuscaGames");
+});
 
 it("abre a política pelo rodapé e permite revisar cookies", async () => {
   vi.stubGlobal("scrollTo", vi.fn());

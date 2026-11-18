@@ -119,7 +119,7 @@ export const SECTIONS = [
   { id: 'upcoming', title: 'Próximos lançamentos', description: 'Primeiro lançamento previsto nos próximos 365 dias. Datas sujeitas a alteração.' },
 ];
 
-export function listGames(db, { section = '', query = '', page = 1, limit = 12 } = {}, now = Math.floor(Date.now() / 1000)) {
+export function listGames(db, { section = '', query = '', genre = '', page = 1, limit = 12 } = {}, now = Math.floor(Date.now() / 1000)) {
   let from = 'games g';
   let where = '1=1';
   let order = 'g.rating_count DESC, g.id';
@@ -155,6 +155,11 @@ export function listGames(db, { section = '', query = '', page = 1, limit = 12 }
   if (query) {
     where += " AND g.search LIKE ? ESCAPE '\\'";
     params.push(`%${normalize(query).replace(/[\\%_]/g, '\\$&')}%`);
+  }
+  if (genre) {
+    where += ` AND instr(g.search, ?) > 0
+      AND EXISTS (SELECT 1 FROM json_each(g.data, '$.genres') AS genre WHERE genre.value = ?)`;
+    params.push(normalize(genre), genre);
   }
   const total = db.prepare(`SELECT COUNT(*) AS count FROM ${from} WHERE ${where}`).get(...params).count;
   const rows = db.prepare(`SELECT g.data${extra} FROM ${from} WHERE ${where} ORDER BY ${order} LIMIT ? OFFSET ?`)

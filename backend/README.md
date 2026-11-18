@@ -116,6 +116,7 @@ Falhas preservam o valor anterior da mesma edição com indicação de atualiza�
 - `GET /api/health`: disponibilidade do serviço e banco; não mede a saúde da IGDB.
 - `GET /api/home`: seis seções, primeira página do catálogo e estado de sincronização.
 - `GET /api/games?page=1&limit=12&q=termo&section=retro`: busca e paginação; `section` é opcional (`weekly`, `trending`, `retro`, `classics`, `new`, `upcoming`). Limite máximo: 48 itens; busca: 120 caracteres.
+- A mesma lista aceita `genre=Adventure` para filtrar pelo nome original e exato de um gênero IGDB (até 120 caracteres). O filtro usa o gênero registrado, independentemente de título, texto ou tema.
 - `GET /api/games/igdb-123`: detalhes completos, inclusive relações de DLC/expansões.
 
 Respostas têm ETag e revalidação HTTP a cada consulta e cache interno de 60 segundos. O cache em memória tem teto de 200 respostas. Listagens omitem galerias e descrições longas. A interface faz debounce da busca, usa imagens lazy e atualiza listagens abertas a cada cinco minutos e detalhes a cada minuto. Uma falha externa preserva o catálogo salvo e exibe atualização pendente.

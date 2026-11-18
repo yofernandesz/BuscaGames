@@ -11,6 +11,7 @@ import { useGames } from "../features/games/hooks/useGames";
 import Catalogo from "../features/games/pages/Catalogo";
 import Detalhes from "../features/games/pages/Detalhes";
 import Biblioteca from "../features/games/pages/Biblioteca";
+import RoletaGamer from "../features/games/pages/RoletaGamer";
 import ScrollToTop from "./ScrollToTop";
 import Notificacoes from '../features/community/pages/Notificacoes';
 
@@ -99,6 +100,7 @@ function AppContent() {
           <Route path="/privacidade" element={<Privacidade onCookieSettings={reviewCookies} />} />
           <Route path="/" element={<Catalogo cookiesAccepted={cookieChoice === "accepted" && !reviewingCookies} onCookieSettings={reviewCookies} />} />
           <Route path="/biblioteca" element={<Biblioteca />} />
+          <Route path="/roleta-gamer" element={<RoletaGamer />} />
           <Route path="/jogo/:id" element={<Detalhes />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
