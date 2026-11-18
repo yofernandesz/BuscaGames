@@ -138,11 +138,12 @@ export default function RoletaGamer() {
         let page = 1;
         let hasMore;
         const candidates = [];
+        const label = GENRES.find(([value]) => value === genre)[1];
         do {
-          const params = new URLSearchParams({ genre, page, limit: 48 });
+          const params = new URLSearchParams({ q: genre, page, limit: 48 });
           const data = await readCatalog(`/api/games?${params}`, signal);
           if (controller.signal.aborted) return;
-          candidates.push(...data.games);
+          candidates.push(...data.games.filter((game) => game.genres?.includes(label)));
           games = uniqueGames(candidates);
           hasMore = data.hasMore;
           page++;

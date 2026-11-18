@@ -6,7 +6,7 @@ const { chromium } = require(process.env.PLAYWRIGHT_MODULE || 'playwright');
   const { createServer } = await import('../../frontend/node_modules/vite/dist/node/index.js');
   const server = await createServer({ root: 'frontend', server: { host: '127.0.0.1', port: 0 } });
   const games = ['Hollow Knight', 'Celeste', 'A Short Hike', 'Outer Wilds', 'Portal 2', 'The Legend of Zelda: Breath of the Wild', 'Fez'].map((title, index) => ({
-    id: `igdb-${index + 1}`, title, cover: '/buscagames-mark.png',
+    id: `igdb-${index + 1}`, title, genres: ['Aventura'], cover: '/buscagames-mark.png',
   }));
   let browser;
   try {
@@ -22,9 +22,9 @@ const { chromium } = require(process.env.PLAYWRIGHT_MODULE || 'playwright');
     let catalogCalls = 0;
     await page.route('**/api/**', async (route) => {
       const url = new URL(route.request().url());
-      if (!url.searchParams.has('genre')) return route.fulfill({ json: { user: null, games: [] } });
-      if (url.searchParams.get('genre') === 'Shooter') return route.fulfill({ json: { games: [], hasMore: false } });
-      assert.equal(url.searchParams.get('genre'), 'Adventure');
+      if (!['Adventure', 'Shooter'].includes(url.searchParams.get('q'))) return route.fulfill({ json: { user: null, games: [] } });
+      if (url.searchParams.get('q') === 'Shooter') return route.fulfill({ json: { games: [], hasMore: false } });
+      assert.equal(url.searchParams.get('q'), 'Adventure');
       catalogCalls++;
       if (catalogCalls === 1) return route.fulfill({ status: 503, json: { error: 'Indisponível' } });
       await catalogReady;

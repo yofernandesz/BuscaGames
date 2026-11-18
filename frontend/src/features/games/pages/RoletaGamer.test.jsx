@@ -15,7 +15,7 @@ const add = (title) => {
   fireEvent.change(input(), { target: { value: title } });
   fireEvent.click(button('Adicionar jogo'));
 };
-const mockGames = Array.from({ length: 8 }, (_, index) => ({ id: `igdb-${index + 1}`, title: `Jogo ${index + 1}`, cover: '/cover.png' }));
+const mockGames = Array.from({ length: 8 }, (_, index) => ({ id: `igdb-${index + 1}`, title: `Jogo ${index + 1}`, genres: ['RPG', 'Tiro'], cover: '/cover.png' }));
 
 beforeEach(() => {
   vi.mocked(readCatalog).mockReset().mockResolvedValue({ games: [] });
@@ -66,8 +66,8 @@ it('consulta o gênero, pagina quando necessário, filtra duplicatas e reutiliza
   const titles = () => within(list()).getAllByRole('listitem').map((item) => item.textContent);
   const first = titles();
   expect(new Set(first).size).toBe(6);
-  expect(readCatalog).toHaveBeenNthCalledWith(1, '/api/games?genre=Role-playing+%28RPG%29&page=1&limit=48', expect.anything());
-  expect(readCatalog).toHaveBeenNthCalledWith(2, '/api/games?genre=Role-playing+%28RPG%29&page=2&limit=48', expect.anything());
+  expect(readCatalog).toHaveBeenNthCalledWith(1, '/api/games?q=Role-playing+%28RPG%29&page=1&limit=48', expect.anything());
+  expect(readCatalog).toHaveBeenNthCalledWith(2, '/api/games?q=Role-playing+%28RPG%29&page=2&limit=48', expect.anything());
   fireEvent.click(button('Personalizada'));
   fireEvent.click(button('Por gênero'));
   expect(screen.getByRole('combobox')).toHaveValue('Role-playing (RPG)');
