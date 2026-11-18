@@ -111,6 +111,10 @@ de 7px já implementados; preços são conteúdo textual, sem caixa decorativa.
 `Shelf` em `Catalogo.jsx` controla as setas de 44px nas duas extremidades das
 listas horizontais. Cada clique desloca uma largura visível; os limites desativam
 a seta correspondente, inclusive após redimensionar ou carregar mais jogos.
+Acima de 900px as setas ficam ao lado dos cards; até 900px ocupam uma linha
+acima da lista, nas extremidades, preservando a largura de leitura. Até 650px
+os cards ocupam 88% da faixa, sugerindo continuidade; até 380px ocupam 100%
+para preservar os controles internos. Títulos e contagens podem quebrar linha.
 As setas ficam fora dos cards, usam tokens existentes em `games.css`, foco ciano
 e nomes acessíveis em português. Movimento reduzido usa deslocamento instantâneo;
 rolagem por toque, teclado e barra continua disponível. Listas vazias não têm setas.

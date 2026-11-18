@@ -62,8 +62,8 @@ function Shelf({ title, description, initial, section = "", query = "" }) {
     if (!section) return;
     const shelf = shelfRef.current;
     const updateEdges = () => setEdges({
-      start: shelf.scrollLeft <= 1,
-      end: shelf.scrollLeft + shelf.clientWidth >= shelf.scrollWidth - 1,
+      start: shelf.scrollLeft <= 3,
+      end: shelf.scrollLeft + shelf.clientWidth >= shelf.scrollWidth - 3,
     });
     updateEdges();
     const observer = new ResizeObserver(updateEdges);
