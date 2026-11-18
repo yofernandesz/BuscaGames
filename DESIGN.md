@@ -28,6 +28,10 @@ components:
 ### Notificações recebidas
 
 `NotificationButton.jsx` é o dono do sino e da contagem de não lidas no Header.
+O controle mostra somente o ícone e o selo sobreposto, em uma área fixa de 58×44px;
+o nome completo fica acessível e no tooltip. Cada novo evento detectado repete um
+balanço amortecido de 1100ms, halo ciano de 1000ms e pulso do selo de 750ms.
+Carregamento inicial e leitura não celebram; movimento reduzido desativa os efeitos.
 A contagem é consultada ao entrar, ao retornar à janela e a cada 30 segundos
 com a página visível; leitura confirmada atualiza o sino. O selo reserva largura,
 mostra 99+ visualmente e anuncia a contagem completa no nome acessível. Falha de

@@ -43,7 +43,7 @@ export default function NotificationButton() {
   }, []);
   const label = failed ? 'Notificações: contagem indisponível' : count == null ? 'Notificações: carregando contagem' : `Notificações: ${count.toLocaleString('pt-BR')} não lidas`;
   return <NavLink className={`notification-button${arrival ? ' notification-arrival' : ''}`} to="/notificacoes" aria-label={label} title={label}>
-    <svg key={`bell-${arrival}`} aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4" /></svg>
-    <span>Notificações</span><span key={`count-${arrival}`} className="notification-count" aria-hidden="true">{failed ? '!' : count == null ? '…' : count > 99 ? '99+' : count}</span>
+    <span key={`bell-${arrival}`} className="notification-bell" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4" /></svg></span>
+    <span key={`count-${arrival}`} className="notification-count" aria-hidden="true">{failed ? '!' : count == null ? '…' : count > 99 ? '99+' : count}</span>
   </NavLink>;
 }

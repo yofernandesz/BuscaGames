@@ -34,6 +34,22 @@ const { chromium } = require(process.env.PLAYWRIGHT_MODULE || 'playwright');
     page.on('pageerror', error => errors.push(error.message));
     await page.goto(`${origin}/notificacoes`);
     await page.getByRole('link', { name: 'Notificações: 3 não lidas' }).waitFor();
+    const bell = page.locator('.notification-button');
+    assert.equal(await bell.innerText(), '3');
+    assert.equal(await bell.locator('svg').evaluate(el => getComputedStyle(el).animationName), 'none');
+    await bell.focus();
+    assert.equal(await bell.evaluate(el => getComputedStyle(el).outlineStyle), 'solid');
+    for (const count of [4, 5]) {
+      db.prepare("INSERT INTO notifications(recipient_id,actor_id,kind) VALUES (1,2,'follow')").run();
+      await page.evaluate(() => window.dispatchEvent(new Event('notifications-changed')));
+      await page.getByRole('link', { name: `Notificações: ${count} não lidas` }).waitFor();
+      assert.ok(await bell.locator('svg').evaluate(el => el.getAnimations().some(a => a.animationName === 'notification-ring')));
+      assert.equal(await bell.locator('.notification-bell').evaluate(el => getComputedStyle(el, '::after').animationName), 'notification-halo');
+    }
+    // Restore the initial inbox before exercising its existing read flow.
+    db.prepare('DELETE FROM notifications WHERE id > 3').run();
+    await page.evaluate(() => window.dispatchEvent(new Event('notifications-changed')));
+    await page.getByRole('link', { name: 'Notificações: 3 não lidas' }).waitFor();
     await page.getByText('3 não lidas', { exact: true }).waitFor();
     assert.equal(await page.locator('.notification-unread').count(), 3);
     await page.screenshot({ path: 'evidencias/capturas/notifications-desktop.png', fullPage: true });
@@ -55,6 +71,8 @@ const { chromium } = require(process.env.PLAYWRIGHT_MODULE || 'playwright');
     await page.getByText('0 não lidas', { exact: true }).waitFor();
     await page.setViewportSize({ width: 320, height: 760 });
     await page.emulateMedia({ reducedMotion: 'reduce' });
+    assert.equal(await bell.locator('svg').evaluate(el => getComputedStyle(el).animationName), 'none');
+    assert.equal(await bell.evaluate(el => el.getBoundingClientRect().width), 58);
     assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
     await page.screenshot({ path: 'evidencias/capturas/notifications-mobile.png', fullPage: true });
     await page.route('**/api/notifications', route => route.fulfill({ status: 503, contentType: 'application/json', body: JSON.stringify({ error: 'Notificações indisponíveis. Tente novamente.' }) }));
