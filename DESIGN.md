@@ -106,6 +106,15 @@ de 7px já implementados; preços são conteúdo textual, sem caixa decorativa.
 
 ## Components
 
+### Navegação lateral das categorias
+
+`Shelf` em `Catalogo.jsx` controla as setas de 44px nas duas extremidades das
+listas horizontais. Cada clique desloca uma largura visível; os limites desativam
+a seta correspondente, inclusive após redimensionar ou carregar mais jogos.
+As setas ficam fora dos cards, usam tokens existentes em `games.css`, foco ciano
+e nomes acessíveis em português. Movimento reduzido usa deslocamento instantâneo;
+rolagem por toque, teclado e barra continua disponível. Listas vazias não têm setas.
+
 ### Confirmação de e-mail e recuperação de senha
 
 `Account.jsx` e `LoginDialog.jsx` são as entradas da conta. Cadastro pendente

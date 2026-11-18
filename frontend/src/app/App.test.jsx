@@ -8,6 +8,7 @@ import App from "./App";
 
 const emptyPage = { games: [], total: 0, page: 1, limit: 12, hasMore: false };
 beforeEach(() => {
+  vi.stubGlobal("ResizeObserver", class { observe() {} disconnect() {} });
   vi.stubGlobal("scrollTo", vi.fn());
   localStorage.clear();
   vi.mocked(communityApi).mockReset().mockResolvedValue({ user: null, comments: [], own: null, nextCursor: null });
@@ -130,6 +131,33 @@ describe("Catálogo sincronizado", () => {
   };
   const titles = ["Interesse da semana", "Em alta", "Retrô", "Clássicos", "Lançamentos", "Próximos lançamentos"];
   const sectionIds = ["weekly", "trending", "retro", "classics", "new", "upcoming"];
+
+  it("desloca a categoria nos dois sentidos e desativa as setas nos limites", async () => {
+    vi.stubGlobal("matchMedia", () => ({ matches: true }));
+    vi.mocked(fetch).mockResolvedValue({ ok: true, json: async () => ({
+      status: { configured: true }, catalog: emptyPage,
+      sections: [{ ...emptyPage, id: "weekly", title: titles[0], games: [remoteGame] }],
+    }) });
+    render(<MemoryRouter><App /></MemoryRouter>);
+    const shelf = await screen.findByRole("group", { name: `Jogos de ${titles[0]}; role para explorar` });
+    Object.defineProperties(shelf, { clientWidth: { value: 300 }, scrollWidth: { value: 900 } });
+    shelf.scrollBy = vi.fn();
+    fireEvent.scroll(shelf);
+    const previous = screen.getByRole("button", { name: `Jogos anteriores em ${titles[0]}` });
+    const next = screen.getByRole("button", { name: `Próximos jogos em ${titles[0]}` });
+    expect(previous).toBeDisabled();
+    fireEvent.click(next);
+    expect(shelf.scrollBy).toHaveBeenLastCalledWith({ left: 300, behavior: "instant" });
+    shelf.scrollLeft = 600;
+    fireEvent.scroll(shelf);
+    expect(next).toBeDisabled();
+    expect(previous).toBeEnabled();
+    fireEvent.click(previous);
+    expect(shelf.scrollBy).toHaveBeenLastCalledWith({ left: -300, behavior: "instant" });
+    shelf.scrollLeft = 0;
+    fireEvent.scroll(shelf);
+    expect(previous).toBeDisabled();
+  });
 
   it("mostra as seis seções, pagina os resultados e mantém notas pessoais separadas da fonte", async () => {
     localStorage.clear();

@@ -116,6 +116,16 @@
 .shelf-empty { padding: 26px; margin-top: 16px; border: 1px dashed var(--line); border-radius: 14px; color: var(--text-lo); background: #ffffff02; }
 .catalog-section.discovery-shelf .games-grid { display: grid; grid-auto-flow: column; grid-auto-columns: clamp(250px, 27vw, 300px); grid-template-columns: none; overflow-x: auto; scroll-snap-type: x proximity; scrollbar-width: thin; scrollbar-color: var(--neon-purple) var(--bg-1); padding: 8px 2px 20px; }
 .discovery-shelf .card { scroll-snap-align: start; min-width: 0; }
+.shelf-navigation { display: grid; grid-template-columns: 44px minmax(0, 1fr) 44px; align-items: center; gap: 10px; }
+.shelf-arrow { display: grid; place-items: center; width: 44px; height: 44px; padding: 0; border: 1px solid var(--line); border-radius: 50%; background: var(--bg-1); color: var(--text-hi); cursor: pointer; }
+.shelf-arrow svg { width: 24px; height: 24px; }
+.shelf-arrow:hover:not(:disabled) { border-color: var(--neon-cyan); color: var(--neon-cyan); }
+.shelf-arrow:active:not(:disabled) { background: var(--bg-0); }
+.shelf-arrow:focus-visible { outline: 2px solid var(--neon-cyan); outline-offset: 3px; }
+.shelf-arrow:disabled { opacity: .35; cursor: default; }
+@media (max-width: 650px) {
+  .shelf-navigation { gap: 4px; }
+}
 .discovery-shelf .card-cover { aspect-ratio: 3 / 4; }
 .discovery-shelf .card-cover img { object-position: center; }
 .discovery-nav a:focus-visible, .discovery-secondary:focus-visible, .discovery-shelf .games-grid:focus-visible { outline: 2px solid var(--neon-cyan); outline-offset: 3px; }

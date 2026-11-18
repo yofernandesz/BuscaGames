@@ -1,5 +1,5 @@
 import Skeleton from "../../../components/ui/Skeleton";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import FeaturedGame from "../components/FeaturedGame";
 import { useGames } from "../hooks/useGames";
@@ -56,6 +56,29 @@ function Shelf({ title, description, initial, section = "", query = "" }) {
   const [error, setError] = useState("");
   const byId = new Map(games.map((game) => [game.id, game]));
   const displayed = [...new Map([...initial.games, ...extra].map((game) => [game.id, game])).values()];
+  const shelfRef = useRef(null);
+  const [edges, setEdges] = useState({ start: true, end: true });
+  useEffect(() => {
+    if (!section) return;
+    const shelf = shelfRef.current;
+    const updateEdges = () => setEdges({
+      start: shelf.scrollLeft <= 1,
+      end: shelf.scrollLeft + shelf.clientWidth >= shelf.scrollWidth - 1,
+    });
+    updateEdges();
+    const observer = new ResizeObserver(updateEdges);
+    observer.observe(shelf);
+    for (const card of shelf.children) observer.observe(card);
+    shelf.addEventListener("scroll", updateEdges, { passive: true });
+    return () => { observer.disconnect(); shelf.removeEventListener("scroll", updateEdges); };
+  }, [section, displayed.length]);
+  function scrollShelf(direction) {
+    const shelf = shelfRef.current;
+    shelf.scrollBy({
+      left: direction * shelf.clientWidth,
+      behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth",
+    });
+  }
   async function loadMore() {
     setLoading(true); setError("");
     try {
@@ -71,8 +94,16 @@ function Shelf({ title, description, initial, section = "", query = "" }) {
         <span className="shelf-count">{initial.total.toLocaleString("pt-BR")} títulos</span></div>
       {SHELF_INTROS[section] && <p className="shelf-intro">{initial.notice || SHELF_INTROS[section]}</p>}
       {description && <details className="shelf-criteria"><summary>Como esta seleção é feita</summary><p>{description}</p></details>}
-      <div className="games-grid" tabIndex={section && displayed.length ? 0 : undefined} role={section ? "group" : undefined} aria-label={section ? `Jogos de ${title}; role para explorar` : undefined}>
+      <div className={section && displayed.length ? "shelf-navigation" : undefined}>
+      {section && displayed.length > 0 && <button type="button" className="shelf-arrow" aria-label={`Jogos anteriores em ${title}`} aria-controls={`games-${section}`} disabled={edges.start} onClick={() => scrollShelf(-1)}>
+        <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m15 6-6 6 6 6" /></svg>
+      </button>}
+      <div ref={shelfRef} id={section ? `games-${section}` : undefined} className="games-grid" tabIndex={section && displayed.length ? 0 : undefined} role={section ? "group" : undefined} aria-label={section ? `Jogos de ${title}; role para explorar` : undefined}>
         {displayed.map((game) => <GameCard key={game.id} game={{ ...(byId.get(game.id) || game), metric: game.metric }} />)}
+      </div>
+      {section && displayed.length > 0 && <button type="button" className="shelf-arrow" aria-label={`Próximos jogos em ${title}`} aria-controls={`games-${section}`} disabled={edges.end} onClick={() => scrollShelf(1)}>
+        <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m9 6 6 6-6 6" /></svg>
+      </button>}
       </div>
       {!displayed.length && <p className="shelf-empty">{section === "trending" ? "Aguardando a coleta do ranking Steam. Explore também os destaques da semana." : "Novos títulos aparecerão aqui conforme o catálogo for atualizado."}</p>}
       {loading && <Skeleton variant="cards" count={3} label="Carregando mais jogos…" />}{error && <p role="alert">{error}</p>}
